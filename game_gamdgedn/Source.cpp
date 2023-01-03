@@ -1,7 +1,7 @@
 #include "raylib.h"
 #define screenheight 450
 #define screenwidth 800
-
+//test
 void main() {
 
  InitWindow(screenwidth,screenheight,"game title");
@@ -9,8 +9,8 @@ void main() {
  Texture2D player;
  player = LoadTexture("resources/fawzy.gif");
  
- Texture2D bg;
- bg = LoadTexture("resources/zarya.png");
+ //Texture2D bg;
+ //bg = LoadTexture("resources/zarya.png");
 
  Vector2 characterpos = { 0, 0 };
  
@@ -20,7 +20,7 @@ void main() {
 	 BeginDrawing();
 	 ClearBackground(WHITE);
 
-	 DrawTexture(bg,0, 0, WHITE);
+	 //DrawTexture(bg,0, 0, WHITE);
 
 	 DrawTexture(player,characterpos.x,characterpos.y,WHITE);
 
