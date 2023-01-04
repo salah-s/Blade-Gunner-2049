@@ -9,12 +9,6 @@ void main() {
 	SetTargetFPS(60);
 
 	// loading textures
-	Texture2D playerr;
-	playerr = LoadTexture("resources/p1r.png");
-
-	Texture2D playerl;
-	playerl = LoadTexture("resources/p1l.png");
-
 	Texture2D player;
 	player = LoadTexture("resources/p1r.png");
 
