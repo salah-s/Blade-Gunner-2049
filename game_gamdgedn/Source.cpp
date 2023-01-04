@@ -61,7 +61,7 @@ void main() {
 		BeginDrawing();
 			BeginMode2D(playerCam); //showing camera
 	
-			ClearBackground(WHITE);
+			ClearBackground(GRAY);
 
 			DrawTexture(bg,0, 0, WHITE);
 
