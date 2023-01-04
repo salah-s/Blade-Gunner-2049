@@ -1,6 +1,6 @@
 #include "raylib.h"
-#define screenheight 450
-#define screenwidth 800
+#define screenheight 720
+#define screenwidth 1280
 
 void main() {
 	//initializing window
@@ -22,10 +22,23 @@ void main() {
 
  
  Vector2 characterpos = { 0, 0 };
- int playerspeed = 3;
+  int playerspeed = 3;
+
+  //initializing camera
+  Camera2D playercam = {0};
+  playercam.target = characterpos;
+  playercam.offset = { screenwidth / 2.0f, screenheight / 2.0f };
+  playercam.rotation = 0.0f;
+  playercam.zoom = 1.4f;
 
  // GAME LOOP
  while (!WindowShouldClose()) {
+
+	 //enabling fullscreen mode
+	 if (IsKeyPressed(KEY_F))
+		 ToggleFullscreen();
+
+	 playercam.target = { characterpos.x + 20, characterpos.y + 20 };
 
 	 //character movement
 	 if (IsKeyDown(KEY_RIGHT)) {
@@ -41,11 +54,15 @@ void main() {
 	 if (IsKeyDown(KEY_DOWN))
 		 characterpos.y += playerspeed;
 
-	 
+
+
+		
 
 	 //drawing
 	 BeginDrawing();
 
+	 BeginMode2D(playercam); //showing camera
+	
 	 ClearBackground(WHITE);
 
 	 DrawTexture(bg,0, 0, WHITE);
