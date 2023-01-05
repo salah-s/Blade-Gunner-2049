@@ -1,13 +1,14 @@
 #include "raylib.h"
+#include <stdlib.h>
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
-struct enemystruct {
+struct zombie {
 	Texture2D texture;
 	Vector2 position;
 	int speed;
-	texture = LoadTexture("resources/p1l.png");
+
 };
 
 
@@ -17,14 +18,14 @@ void main() {
 	SetTargetFPS(60);
 
 	// loading textures
-	Texture2D player;
-	player = LoadTexture("resources/p1r.png");
+	Texture2D player = LoadTexture("resources/p1r.png");
 
-	
+	Texture2D texzombie = LoadTexture("resources/p1l.png");
 
 	Texture2D bg;
 	bg = LoadTexture("resources/bg.png");
  
+zombie *zombies = (zombie*) malloc(100*sizeof(zombie));
 
 //vectors
 	Vector2 playerpos = { 0, 0 };
@@ -34,6 +35,7 @@ void main() {
 	int playerspeed = 3;
 	int enemyspeed = 2;
 	float timer = 0.0f;
+int zombiecount =0;
 	
 	Rectangle src; //player rec
 	src.width = player.width;
@@ -50,6 +52,19 @@ void main() {
 
 	// GAME LOOP
 	while (!WindowShouldClose()) {
+
+// Create more zombies
+            for (int i = 0; i < 100; i++)
+            {
+                if (zombie count < 50)
+                {
+                    zombies[zombiecount].position = (float)GetRandomValue(100,300);
+                    zombies[bunniesCount].speed.x = 0/60.0f;
+                    zombies[zombiecount].speed.y = 0/60.0f;
+                    zombiecount++;
+                }
+            }
+        }
 
 		//enabling fullscreen mode
 		if (IsKeyPressed(KEY_F))
