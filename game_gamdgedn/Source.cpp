@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <stdio.h>
 #include <math.h>
 
 #define SCREEN_WIDTH 1280
@@ -63,7 +64,11 @@ void main() {
 	int playerSpeed = 3;
 	int enemySpeed = 2;
 	int enemyTimer = 0;
+	int playerHealth = 10;
+	
 	float enemySpawnRate = 1.0f;
+
+	bool collided = false;
 
 	// Initializing camera
 	Camera2D playerCam = { 0 };
@@ -96,7 +101,6 @@ void main() {
 		//update playerhitbox pos
 		PlayerHitbox.x = playerPos.x +20;
 		PlayerHitbox.y = playerPos.y +5;
-
 
 		playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
@@ -148,7 +152,19 @@ void main() {
 				enemies[i].EnemyHitbox.x = enemies[i].position.x +15;
 				enemies[i].EnemyHitbox.y = enemies[i].position.y +10;
 
+				if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox))
+				{
+					collided = true;
+					enemies[i].active = false;
+				}
 			}
+		}
+
+		if (collided)
+		{
+			playerHealth--;
+			printf("%d", playerHealth);
+			collided = false;
 		}
 	
 		// Drawing
@@ -170,7 +186,7 @@ void main() {
 				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
 				DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
 			}
-			}
+		}
 
 		EndDrawing();
 	}
