@@ -26,20 +26,45 @@ float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
 			return playerPos + distance;
 		else if(decision == 1)
 			return playerPos - distance;
-
-	*/
+			*/
 }
 
+
+
+
+
+
+//  define a timer 
+struct Timer {
+	float lifetime;
+};
+
+// a fucntion to start a timer with specific lifetime
+void StartTimer(Timer* timer, float lifetime) {
+	if (timer != NULL)
+		timer->lifetime = lifetime;
+}
+// update a timer with the current frame time
+void UpdateTimer(Timer* timer) {
+	if (timer != NULL && timer->lifetime > 0) // subtract this frame from the timer if the timer is not already expired
+		timer->lifetime -= GetFrameTime();
+}
+//check if the timer is done
+bool TimerDone(Timer* timer) {
+	if (timer != NULL)
+		return timer->lifetime <= 0; //if timer's lifetime is less than or equal 0 ,return 0      ,otherwise return 1 
+}
+
+
 struct Enemy { 
+
 	Texture2D texture;
-	
 	Vector2 position;
 	Vector2 direction;
-	
+	Rectangle EnemyHitbox;
 	int hyp;
 	bool active;
-
-	Rectangle EnemyHitbox;
+	
 };
 
 void main() {
@@ -62,13 +87,14 @@ void main() {
 
 	// Variables
 	int playerSpeed = 3;
+	int playerHealth = 10;
 	int enemySpeed = 2;
 	int enemyTimer = 0;
-	int playerHealth = 10;
-	
 	float enemySpawnRate = 1.0f;
+	int flashingtimer = 0;
 
 	bool collided = false;
+	bool flashing = false;
 
 	// Initializing camera
 	Camera2D playerCam = { 0 };
@@ -90,8 +116,12 @@ void main() {
 		enemies[i].EnemyHitbox.width = 26;
 		enemies[i].EnemyHitbox.height = 26;
 	}
+	//flashing timer
+	Timer flashingtimer = { 0 };
+	float flashinglife = 2.0f;
 
-	// GAME LOOP
+
+	// GAME LOOP**************************************************************************************************************************/
 	while (!WindowShouldClose()) {
 
 		// Toggling fullscreen mode
@@ -99,21 +129,21 @@ void main() {
 			ToggleFullscreen();
 
 		//update playerhitbox pos
-		PlayerHitbox.x = playerPos.x +20;
-		PlayerHitbox.y = playerPos.y +5;
+		PlayerHitbox.x = playerPos.x + 20;
+		PlayerHitbox.y = playerPos.y + 5;
 
 		playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
 		// Player movement
 		if (IsKeyDown(KEY_RIGHT))
 			playerPos.x += playerSpeed;
-		
+
 		if (IsKeyDown(KEY_LEFT))
 			playerPos.x -= playerSpeed;
 
 		if (IsKeyDown(KEY_UP))
 			playerPos.y -= playerSpeed;
-		
+
 		if (IsKeyDown(KEY_DOWN))
 			playerPos.y += playerSpeed;
 
@@ -122,7 +152,7 @@ void main() {
 
 		for (int i = 0; i < MAX_ENEMIES; i++) {
 			if (!enemies[i].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
-				
+
 				enemies[i].active = true;
 				enemies[i].position.x = GetRandomSafeValue(playerPos.x, 200, 300);
 				enemies[i].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
@@ -149,26 +179,34 @@ void main() {
 				enemies[i].position.x += enemies[i].direction.x * 1;
 				enemies[i].position.y += enemies[i].direction.y * 1;
 
-				enemies[i].EnemyHitbox.x = enemies[i].position.x +15;
-				enemies[i].EnemyHitbox.y = enemies[i].position.y +10;
+				enemies[i].EnemyHitbox.x = enemies[i].position.x + 15;
+				enemies[i].EnemyHitbox.y = enemies[i].position.y + 10;
 
 				// Check collision between player and enemy
 				if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox))
 				{
+					printf("collision");
 					collided = true;
-					enemies[i].active = false;
 				}
 			}
 		}
-
 		// If collided, decrease the player's health
-		if (collided)
+		if (collided&& !flashing)
 		{
 			playerHealth--;
 			collided = false;
+			flashing = true;
 		}
+
+		if (flashing == true)
+			flashingtimer++;
+
+		if (flashingtimer%120==0) 
+		flashing = false;
 	
-		// Drawing
+	
+	
+		// DRAWING
 		BeginDrawing();
 		BeginMode2D(playerCam); // Showing camera
 
@@ -178,19 +216,26 @@ void main() {
 		DrawTexture(bg, 0, 0, WHITE);
 		DrawTexture(playerTex, playerPos.x, playerPos.y, WHITE);
 
-		DrawRectangleRec(PlayerHitbox, BLUE);
+		//DrawRectangleRec(PlayerHitbox, BLUE);
 
 		// Drawing active enemies
 		for (int i = 0; i < MAX_ENEMIES; i++)
 		{
 			if (enemies[i].active) {
 				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
-				DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
+				//DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
 			}
 		}
 
 		DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 24, BLACK);
 
+		if(collided)
+			DrawText("collision",10, 25, 24, BLACK);
+
+		if(flashing)
+			DrawText("flashing", 10, 50, 24, BLACK);
+
 		EndDrawing();
+
 	}
 }
