@@ -152,6 +152,7 @@ void main() {
 				enemies[i].EnemyHitbox.x = enemies[i].position.x +15;
 				enemies[i].EnemyHitbox.y = enemies[i].position.y +10;
 
+				// Check collision between player and enemy
 				if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox))
 				{
 					collided = true;
@@ -160,10 +161,10 @@ void main() {
 			}
 		}
 
+		// If collided, decrease the player's health
 		if (collided)
 		{
 			playerHealth--;
-			printf("%d", playerHealth);
 			collided = false;
 		}
 	
@@ -187,6 +188,8 @@ void main() {
 				DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
 			}
 		}
+
+		DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 24, BLACK);
 
 		EndDrawing();
 	}
