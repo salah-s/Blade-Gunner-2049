@@ -37,6 +37,8 @@ struct Enemy {
 	
 	int hyp;
 	bool active;
+
+	Rectangle EnemyHitbox;
 };
 
 void main() {
@@ -54,11 +56,14 @@ void main() {
 	Vector2 playerPos = { 0, 0 };
 	Vector2 enemyPos;
 
+	// Rectangles
+	Rectangle PlayerHitbox = { 00,00,20,45};
+
 	// Variables
 	int playerSpeed = 3;
 	int enemySpeed = 2;
 	int enemyTimer = 0;
-	float enemySpawnRate = 0.2f;
+	float enemySpawnRate = 1.0f;
 
 	// Initializing camera
 	Camera2D playerCam = { 0 };
@@ -74,8 +79,11 @@ void main() {
 	// Intitalizing enemies
 	for (int i = 0; i < MAX_ENEMIES; i++)
 	{
+
 		enemies[i].position = { Vector2{0,0} };
 		enemies[i].active = false;
+		enemies[i].EnemyHitbox.width = 26;
+		enemies[i].EnemyHitbox.height = 26;
 	}
 
 	// GAME LOOP
@@ -84,6 +92,11 @@ void main() {
 		// Toggling fullscreen mode
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
+
+		//update playerhitbox pos
+		PlayerHitbox.x = playerPos.x +20;
+		PlayerHitbox.y = playerPos.y +5;
+
 
 		playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
@@ -107,8 +120,10 @@ void main() {
 			if (!enemies[i].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
 				
 				enemies[i].active = true;
-				enemies[i].position.x = GetRandomSafeValue(playerPos.x, 100, 200);
-				enemies[i].position.y = GetRandomSafeValue(playerPos.y, 100, 200);
+				enemies[i].position.x = GetRandomSafeValue(playerPos.x, 200, 300);
+				enemies[i].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
+				enemies[i].EnemyHitbox.x = enemies[i].position.x;
+				enemies[i].EnemyHitbox.y = enemies[i].position.y;
 
 				break;
 			}
@@ -129,24 +144,33 @@ void main() {
 				// Update the enemy's position (movement)
 				enemies[i].position.x += enemies[i].direction.x * 1;
 				enemies[i].position.y += enemies[i].direction.y * 1;
+
+				enemies[i].EnemyHitbox.x = enemies[i].position.x +15;
+				enemies[i].EnemyHitbox.y = enemies[i].position.y +10;
+
 			}
 		}
-
+	
 		// Drawing
 		BeginDrawing();
 		BeginMode2D(playerCam); // Showing camera
+
 
 		ClearBackground(WHITE);
 
 		DrawTexture(bg, 0, 0, WHITE);
 		DrawTexture(playerTex, playerPos.x, playerPos.y, WHITE);
 
+		DrawRectangleRec(PlayerHitbox, BLUE);
+
 		// Drawing active enemies
 		for (int i = 0; i < MAX_ENEMIES; i++)
 		{
-			if (enemies[i].active)
+			if (enemies[i].active) {
 				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
-		}
+				DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
+			}
+			}
 
 		EndDrawing();
 	}
