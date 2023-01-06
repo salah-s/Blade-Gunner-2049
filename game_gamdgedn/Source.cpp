@@ -1,74 +1,64 @@
-#include "raylib.h"
+#include <raylib.h>
 #include <math.h>
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define max_enemies 200
+#define MAX_ENEMIES 200
 
-//this function is not working 100% correctly: (it only spawns enemies at the starting position of the player,its not following the player position)
 // a function that generates a random number between a min dist from the player and a max dist from the player
-float GetRandomSafeValue(float playerposx, float mindis, float maxdis) {
-	int x;
+float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
 
-	for (int i = 0;i < 500;i++) {
-		x = GetRandomValue(-maxdis, maxdis);
-		if ((x< playerposx + maxdis && x>playerposx + mindis) || x > playerposx - maxdis && x < playerposx - mindis)
-			return x;
-	}
+	int distance = GetRandomValue(minDist, maxDist);
+
+	return GetRandomValue(0, 1) ? playerPos + distance : playerPos - distance;
 }
-
 
 struct Enemy { //making enemies struct 
 	Texture2D texture;
+	
 	Vector2 position;
 	Vector2 direction;
+	
 	int hyp;
 	bool active;
 };
-
 
 void main() {
 	//initializing window
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "game title");
 	SetTargetFPS(60);
 
-
-
 	// loading textures
-	Texture2D player = LoadTexture("resources/p1r.png");
-
-	Texture2D enemytex = LoadTexture("resources/mob.png");
-
 	Texture2D bg = LoadTexture("resources/bg.png");
-
+	Texture2D playerTex = LoadTexture("resources/p1r.png");
+	Texture2D enemyTex = LoadTexture("resources/mob.png");
 
 	//vectors
-	Vector2 playerpos = { 0, 0 };
-	Vector2 enemypos;
+	Vector2 playerPos = { 0, 0 };
+	Vector2 enemyPos;
 
 	//variables
-	int playerspeed = 3;
-	int enemyspeed = 2;
-	int etimer = 0;
-	int enemyspawnrate = 3;
+	int playerSpeed = 3;
+	int enemySpeed = 2;
+	int enemyTimer = 0;
+	float enemySpawnRate = 0.2f;
 
 	//initializing camera
 	Camera2D playerCam = { 0 };
-	playerCam.target = playerpos;
-	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (player.width / 2), (SCREEN_HEIGHT / 2.0f) - (player.height / 2) };
+
+	playerCam.target = playerPos;
+	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (playerTex.width / 2), (SCREEN_HEIGHT / 2.0f) - (playerTex.height / 2) };
 	playerCam.rotation = 0.0f;
 	playerCam.zoom = 1.4f;
 
 	//making an array of "Enemy(s)"
-	struct Enemy e[max_enemies] = { 0 };
-
+	Enemy enemies[MAX_ENEMIES] = { 0 };
 
 	//intitalizing enemies
-	for (int i = 0; i < max_enemies; i++)
+	for (int i = 0; i < MAX_ENEMIES; i++)
 	{
-
-		e[i].position = { Vector2{0,0} };
-		e[i].active = false;
+		enemies[i].position = { Vector2{0,0} };
+		enemies[i].active = false;
 	}
 
 	// GAME LOOP
@@ -78,58 +68,54 @@ void main() {
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
 
-		playerCam.target = { playerpos.x + 20, playerpos.y + 20 };
+		playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
 		//character movement
-		if (IsKeyDown(KEY_RIGHT)) {
-			playerpos.x += playerspeed;
-
-		}
-
-		if (IsKeyDown(KEY_LEFT)) {
-			playerpos.x -= playerspeed;
-
-		}
+		if (IsKeyDown(KEY_RIGHT))
+			playerPos.x += playerSpeed;
+		
+		if (IsKeyDown(KEY_LEFT))
+			playerPos.x -= playerSpeed;
 
 		if (IsKeyDown(KEY_UP))
-			playerpos.y -= playerspeed;
+			playerPos.y -= playerSpeed;
+		
 		if (IsKeyDown(KEY_DOWN))
-			playerpos.y += playerspeed;
+			playerPos.y += playerSpeed;
 
 		//activating enemies and giving them positions
-		etimer++;
-		for (int i = 0;i < max_enemies;i++) {
+		enemyTimer++;
 
-			if (!e[i].active && etimer % (60 / enemyspawnrate) == 0) {
-				e[i].active = true;
-				e[i].position.x = GetRandomSafeValue(playerpos.x, 100, 200);
-				e[i].position.y = GetRandomSafeValue(playerpos.y, 100, 200);
+		for (int i = 0; i < MAX_ENEMIES; i++) {
+
+			if (!enemies[i].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
+				
+				enemies[i].active = true;
+				enemies[i].position.x = GetRandomSafeValue(playerPos.x, 100, 200);
+				enemies[i].position.y = GetRandomSafeValue(playerPos.y, 100, 200);
 
 				break;
 			}
 		}
 
-
 		//update enemies
-		for (int i = 0;i < max_enemies;i++) {
+		for (int i = 0; i < MAX_ENEMIES; i++) {
 
-			if (e[i].active) {
+			if (enemies[i].active) {
 				//enemy direction to follow player = player position - enemy position 
-				e[i].direction.x = (playerpos.x - e[i].position.x);
-				e[i].direction.y = (playerpos.y - e[i].position.y);
+				enemies[i].direction.x = (playerPos.x - enemies[i].position.x);
+				enemies[i].direction.y = (playerPos.y - enemies[i].position.y);
 
 				//normalizing the direction vector
-				e[i].hyp = sqrt(e[i].direction.x * e[i].direction.x + e[i].direction.y * e[i].direction.y);
-				e[i].direction.x /= e[i].hyp;
-				e[i].direction.y /= e[i].hyp;
+				enemies[i].hyp = sqrt(enemies[i].direction.x * enemies[i].direction.x + enemies[i].direction.y * enemies[i].direction.y);
+				enemies[i].direction.x /= enemies[i].hyp;
+				enemies[i].direction.y /= enemies[i].hyp;
 
 				// update enemy position (movement)
-				e[i].position.x += e[i].direction.x * 1;
-				e[i].position.y += e[i].direction.y * 1;
+				enemies[i].position.x += enemies[i].direction.x * 1;
+				enemies[i].position.y += enemies[i].direction.y * 1;
 			}
 		}
-
-
 
 		//drawing
 		BeginDrawing();
@@ -138,20 +124,14 @@ void main() {
 		ClearBackground(WHITE);
 
 		DrawTexture(bg, 0, 0, WHITE);
-
-		DrawTexture(player, playerpos.x, playerpos.y, WHITE);
-
-
+		DrawTexture(playerTex, playerPos.x, playerPos.y, WHITE);
 
 		//drawing active enemies
-
-		for (int i = 0; i < max_enemies; i++)
+		for (int i = 0; i < MAX_ENEMIES; i++)
 		{
-			if (e[i].active)
-				DrawTexture(enemytex, e[i].position.x, e[i].position.y, WHITE);
+			if (enemies[i].active)
+				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
 		}
-
-
 
 		EndDrawing();
 	}
