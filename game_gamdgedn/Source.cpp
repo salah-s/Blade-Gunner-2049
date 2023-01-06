@@ -124,8 +124,8 @@ void main() {
 				e[i].direction.y /= e[i].hyp;
 
 				// update enemy position (movement)
-				e[i].position.x += e[1].direction.x * 1;
-				e[i].position.y += e[1].direction.y * 1;
+				e[i].position.x += e[i].direction.x * 1;
+				e[i].position.y += e[i].direction.y * 1;
 			}
 		}
 
