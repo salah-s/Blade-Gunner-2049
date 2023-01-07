@@ -1,6 +1,7 @@
 #include <raylib.h>
 #include <stdio.h>
 #include <math.h>
+#include <raymath.h>
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
@@ -64,11 +65,19 @@ struct Enemy {
 };
 struct Bullet {
 	Texture2D texture;
+	Rectangle BulletHitbox;
+
 	Vector2 position;
 	Vector2 direction;
-	Rectangle BulletHitbox;
+
+	Timer bullettimer;
+	float bulletlife;
+
+	Vector2 targetpos;
 	bool active;
-	int bulletspeed;
+
+	
+
 };
 
 void main() {
@@ -92,9 +101,9 @@ void main() {
 	// Variables
 	int playerSpeed = 3;
 	int playerHealth = 10;
+	int bulletspeed = 2;
 
-
-
+	// enemy timer (old timer system)
 	int enemyTimer = 0;
 	float enemySpawnRate = 1.0f;
 
@@ -129,18 +138,25 @@ void main() {
 	for (int i = 0; i < MAX_BULLETS; i++) {
 		bullets[i].position = Vector2{ 0,0 };
 		bullets[i].active = false;
+
 		bullets[i].BulletHitbox.width = 5;
 		bullets[i].BulletHitbox.height = 5;
-		bullets[i].bulletspeed = 4;
+
+		//initializing bullet timer
+		// bullets[i].bullettimer;
+		bullets[i].bulletlife = 2.0f;
+
 
 	}
 
 
 	//initiallizing timers
+
+
 	Timer flashingTimer;
 	flashingTimer.Lifetime = 0.0f;
 
-	// GAME LOOP
+	// GAME LOOP**************************************************************************************************************
 	while (!WindowShouldClose()) {
 
 		// Toggling fullscreen mode
@@ -170,28 +186,33 @@ void main() {
 			if (IsKeyDown(KEY_DOWN))
 				playerPos.y += playerSpeed;
 
+			
+
 			//activate bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
 				if (!bullets[i].active && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 					bullets[i].active = true;
+
 					bullets[i].position = playerPos;
-					bullets[i].BulletHitbox.x = bullets[i].position.x;
-					bullets[i].BulletHitbox.y = bullets[i].position.y;
+
+					bullets[i].direction = Vector2Subtract(GetMousePosition(),playerPos);
+
 					break;
 				}
 			}
+			printf("%d \t %d \t",GetMouseX(), GetMouseY());
 
 			//update bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
-				if (bullets[i].active) {
-					bullets[i].direction.x = GetMousePosition().x - playerPos.x;
-					bullets[i].direction.y = GetMousePosition().y - playerPos.y;
 
-					bullets[i].position.x += bullets[i].direction.x * bullets[i].bulletspeed;
-					bullets[i].position.y += bullets[i].direction.y * bullets[i].bulletspeed;
+				if (bullets[i].active) { 
+
+						bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()));
+				
+					
 				}
 			}
-
+			
 			// Activating enemies and giving them positions
 			enemyTimer++; // Number of frames
 
@@ -212,15 +233,17 @@ void main() {
 			for (int i = 0; i < MAX_ENEMIES; i++) {
 				if (enemies[i].active) {
 					// Calculate the direction in which to follow player: player position - enemy position
-					enemies[i].direction.x = (playerPos.x - enemies[i].position.x);
-					enemies[i].direction.y = (playerPos.y - enemies[i].position.y);
-
-					// Normalizing the direction vector (to move with the same speed diagonally)
+					
+					enemies[i].direction = Vector2Subtract(playerPos, enemies[i].position);
+				
+					//Normalizing the direction 
 					enemies[i].hyp = sqrt(enemies[i].direction.x * enemies[i].direction.x + enemies[i].direction.y * enemies[i].direction.y);
 					if (enemies[i].hyp != 0) {
 						enemies[i].direction.x /= enemies[i].hyp;
 						enemies[i].direction.y /= enemies[i].hyp;
-					}
+					} 
+					
+
 					// Update the enemy's position (movement)
 					enemies[i].position.x += enemies[i].direction.x * 1;
 					enemies[i].position.y += enemies[i].direction.y * 1;
@@ -233,12 +256,13 @@ void main() {
 					{
 						collided = true;
 						playerHealth--;
+
 						StartTimer(&flashingTimer, flashingDuration);
 					}
 
 				}
 			}
-			
+
 			UpdateTimer(&flashingTimer);
 
 			if (collided && isTimerDone(&flashingTimer))
@@ -248,34 +272,33 @@ void main() {
 				gameOver = true;
 		}
 
-			// DRAWING
-			BeginDrawing();
-			BeginMode2D(playerCam); // Showing camera
+		// DRAWING
+		BeginDrawing();
+		//BeginMode2D(playerCam); // Showing camera
 
-			ClearBackground(WHITE);
+		ClearBackground(WHITE);
 
-			DrawTexture(bg, 0, 0, WHITE);
-			DrawTexture(playerTex, playerPos.x, playerPos.y, WHITE);
+		DrawTexture(bg, 0, 0, WHITE);
+		DrawTexture(playerTex, playerPos.x, playerPos.y, WHITE);
 
-			//DrawRectangleRec(PlayerHitbox, BLUE);
+		//DrawRectangleRec(PlayerHitbox, BLUE);
 
-			// Drawing active enemies
-			for (int i = 0; i < MAX_ENEMIES; i++)
-			{
-				if (enemies[i].active) {
-					DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
-					//DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
-				}
+		// Drawing active enemies
+		for (int i = 0; i < MAX_ENEMIES; i++)
+		{
+			if (enemies[i].active) {
+				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
+				//DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
 			}
-			//draw bullets
-			for (int i = 0; i < MAX_BULLETS; i++)
-			{
-				if (bullets[i].active) {
-					DrawRectangleRec(bullets[i].BulletHitbox, RED);
-				}
-			}
+		}
+		//draw bullets
+		for (int i = 0; i < MAX_BULLETS; i++) {
 
-			//DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
+			if (bullets[i].active) {  //isTimerDone(&bullets[i].bullettimer)
+				DrawCircleV(bullets[i].position, 10, RED);
+			}
+		}
+			
 
 			//other drawings
 			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 24, BLACK);
@@ -294,5 +317,6 @@ void main() {
 
 			EndDrawing();
 
+		
 	}
 }
