@@ -47,7 +47,7 @@ void UpdateTimer(Timer* timer) {
 //check if the timer is done
 bool isTimerDone(Timer* timer) {
 	if (timer != NULL)
-		return timer->Lifetime <= 0; //if timer's lifetime is less than or equal 0 ,return 0      ,otherwise return 1 
+		return timer->Lifetime <= 0; //if timer's lifetime is less than or equal 0 ,return 1      ,otherwise return 0
 }
 
 struct Enemy { 
@@ -186,6 +186,7 @@ void main() {
 						playerHealth--;
 						StartTimer(&flashingTimer, flashingDuration);
 					}
+					
 				}
 			}
 
@@ -222,6 +223,15 @@ void main() {
 
 		if (gameOver)
 			DrawText("GAME OVER", 100, 100, 42, BLACK);
+
+		if (collided)
+			DrawText("colision", 50, 50, 42, BLACK);
+		else
+			DrawText("no colision", 50, 50, 42, BLACK);
+		if (!(flashingTimer.Lifetime <= 0.0))
+			DrawText("timer is running!", 50, 10, 42, BLACK);
+		else
+			DrawText("timer is not running", 50, 10, 42, BLACK);
 
 		EndDrawing();
 
