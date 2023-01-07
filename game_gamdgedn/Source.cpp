@@ -29,27 +29,25 @@ float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
 			*/
 }
 
-struct Timer
-{
-	float LifeTime;
+//  define a timer 
+struct Timer {
+	float Lifetime;
 };
 
-void StartTimer(Timer* timer, float lifeTime)
-{
+// a fucntion to start a timer with specific lifetime
+void StartTimer(Timer* timer, float lifetime) {
 	if (timer != NULL)
-		timer->LifeTime = lifeTime;
+		timer->Lifetime = lifetime;
 }
-
-float UpdateTimer(Timer* timer)
-{
-	if (timer != NULL && timer->LifeTime > 0)
-		return timer->LifeTime -= GetFrameTime();
+// update a timer with the current frame time
+void UpdateTimer(Timer* timer) {
+	if (timer != NULL && timer->Lifetime > 0) // subtract this frame from the timer if the timer is not already expired
+		timer->Lifetime -= GetFrameTime();
 }
-
-bool isTimerDone(Timer* timer)
-{
+//check if the timer is done
+bool isTimerDone(Timer* timer) {
 	if (timer != NULL)
-		return timer->LifeTime <= 0;
+		return timer->Lifetime <= 0; //if timer's lifetime is less than or equal 0 ,return 0      ,otherwise return 1 
 }
 
 struct Enemy { 
@@ -87,12 +85,14 @@ void main() {
 	int enemySpeed = 2;
 	int enemyTimer = 0;
 	float enemySpawnRate = 1.0f;
+
 	float flashingDuration = 2.0f;
 
 	bool collided = false;
+	bool gameOver = false;
 
 	Timer flashingTimer;
-	flashingTimer.LifeTime = 0.0f;
+	flashingTimer.Lifetime = 0.0f;
 
 	// Initializing camera
 	Camera2D playerCam = { 0 };
@@ -108,7 +108,6 @@ void main() {
 	// Intitalizing enemies
 	for (int i = 0; i < MAX_ENEMIES; i++)
 	{
-
 		enemies[i].position = { Vector2{0,0} };
 		enemies[i].active = false;
 		enemies[i].EnemyHitbox.width = 26;
@@ -122,82 +121,86 @@ void main() {
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
 
-		//update playerhitbox pos
-		PlayerHitbox.x = playerPos.x + 20;
-		PlayerHitbox.y = playerPos.y + 5;
+		if (!gameOver)
+		{
 
-		playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
-		// Player movement
-		if (IsKeyDown(KEY_RIGHT))
-			playerPos.x += playerSpeed;
+			//update playerhitbox pos
+			PlayerHitbox.x = playerPos.x + 20;
+			PlayerHitbox.y = playerPos.y + 5;
 
-		if (IsKeyDown(KEY_LEFT))
-			playerPos.x -= playerSpeed;
+			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
-		if (IsKeyDown(KEY_UP))
-			playerPos.y -= playerSpeed;
+			// Player movement
+			if (IsKeyDown(KEY_RIGHT))
+				playerPos.x += playerSpeed;
 
-		if (IsKeyDown(KEY_DOWN))
-			playerPos.y += playerSpeed;
+			if (IsKeyDown(KEY_LEFT))
+				playerPos.x -= playerSpeed;
 
-		// Activating enemies and giving them positions
-		enemyTimer++; // Number of frames
+			if (IsKeyDown(KEY_UP))
+				playerPos.y -= playerSpeed;
 
-		for (int i = 0; i < MAX_ENEMIES; i++) {
-			if (!enemies[i].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
+			if (IsKeyDown(KEY_DOWN))
+				playerPos.y += playerSpeed;
 
-				enemies[i].active = true;
-				enemies[i].position.x = GetRandomSafeValue(playerPos.x, 200, 300);
-				enemies[i].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
-				enemies[i].EnemyHitbox.x = enemies[i].position.x;
-				enemies[i].EnemyHitbox.y = enemies[i].position.y;
+			// Activating enemies and giving them positions
+			enemyTimer++; // Number of frames
 
-				break;
-			}
-		}
+			for (int i = 0; i < MAX_ENEMIES; i++) {
+				if (!enemies[i].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
 
-		// Update enemies position to follow player
-		for (int i = 0; i < MAX_ENEMIES; i++) {
-			if (enemies[i].active) {
-				// Calculate the direction in which to follow player: player position - enemy position
-				enemies[i].direction.x = (playerPos.x - enemies[i].position.x);
-				enemies[i].direction.y = (playerPos.y - enemies[i].position.y);
+					enemies[i].active = true;
+					enemies[i].position.x = GetRandomSafeValue(playerPos.x, 200, 300);
+					enemies[i].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
+					enemies[i].EnemyHitbox.x = enemies[i].position.x;
+					enemies[i].EnemyHitbox.y = enemies[i].position.y;
 
-				// Normalizing the direction vector (to move with the same speed diagonally)
-				enemies[i].hyp = sqrt(enemies[i].direction.x * enemies[i].direction.x + enemies[i].direction.y * enemies[i].direction.y);
-				enemies[i].direction.x /= enemies[i].hyp;
-				enemies[i].direction.y /= enemies[i].hyp;
-
-				// Update the enemy's position (movement)
-				enemies[i].position.x += enemies[i].direction.x * 1;
-				enemies[i].position.y += enemies[i].direction.y * 1;
-
-				enemies[i].EnemyHitbox.x = enemies[i].position.x + 15;
-				enemies[i].EnemyHitbox.y = enemies[i].position.y + 10;
-
-				// Check collision between player and enemy
-				if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox) && isTimerDone(&flashingTimer))
-				{
-					collided = true;
-					playerHealth--;
-					StartTime(&flashingTimer, flashingDuration);
+					break;
 				}
 			}
+
+			// Update enemies position to follow player
+			for (int i = 0; i < MAX_ENEMIES; i++) {
+				if (enemies[i].active) {
+					// Calculate the direction in which to follow player: player position - enemy position
+					enemies[i].direction.x = (playerPos.x - enemies[i].position.x);
+					enemies[i].direction.y = (playerPos.y - enemies[i].position.y);
+
+					// Normalizing the direction vector (to move with the same speed diagonally)
+					enemies[i].hyp = sqrt(enemies[i].direction.x * enemies[i].direction.x + enemies[i].direction.y * enemies[i].direction.y);
+					enemies[i].direction.x /= enemies[i].hyp;
+					enemies[i].direction.y /= enemies[i].hyp;
+
+					// Update the enemy's position (movement)
+					enemies[i].position.x += enemies[i].direction.x * 1;
+					enemies[i].position.y += enemies[i].direction.y * 1;
+
+					enemies[i].EnemyHitbox.x = enemies[i].position.x + 15;
+					enemies[i].EnemyHitbox.y = enemies[i].position.y + 10;
+
+					// Check collision between player and enemy
+					if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox) && isTimerDone(&flashingTimer) && playerHealth > 0)
+					{
+						collided = true;
+						playerHealth--;
+						StartTimer(&flashingTimer, flashingDuration);
+					}
+				}
+			}
+
+			UpdateTimer(&flashingTimer);
+
+			if (collided && isTimerDone(&flashingTimer))
+				collided = false;
+
+			if (playerHealth <= 0)
+				gameOver = true;
 		}
 
-		UpdateTimer(&flashingTimer);
-
-		// If collided, decrease the player's health
-		if (collided && isTimerDone(&flashingTimer))
-		{
-			collided = false;
-		}
-	
 		// DRAWING
 		BeginDrawing();
 		BeginMode2D(playerCam); // Showing camera
-
 
 		ClearBackground(WHITE);
 
@@ -217,11 +220,8 @@ void main() {
 
 		DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 24, BLACK);
 
-		if(collided)
-			DrawText("collision",10, 25, 24, BLACK);
-
-		if(flashing)
-			DrawText("flashing", 10, 50, 24, BLACK);
+		if (gameOver)
+			DrawText("GAME OVER", 100, 100, 42, BLACK);
 
 		EndDrawing();
 
