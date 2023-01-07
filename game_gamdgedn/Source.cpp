@@ -170,6 +170,28 @@ void main() {
 			if (IsKeyDown(KEY_DOWN))
 				playerPos.y += playerSpeed;
 
+			//activate bullets
+			for (int i = 0; i < MAX_BULLETS; i++) {
+				if (!bullets[i].active && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+					bullets[i].active = true;
+					bullets[i].position = playerPos;
+					bullets[i].BulletHitbox.x = bullets[i].position.x;
+					bullets[i].BulletHitbox.y = bullets[i].position.y;
+					break;
+				}
+			}
+
+			//update bullets
+			for (int i = 0; i < MAX_BULLETS; i++) {
+				if (bullets[i].active) {
+					bullets[i].direction.x = GetMousePosition().x - playerPos.x;
+					bullets[i].direction.y = GetMousePosition().y - playerPos.y;
+
+					bullets[i].position.x += bullets[i].direction.x * bullets[i].bulletspeed;
+					bullets[i].position.y += bullets[i].direction.y * bullets[i].bulletspeed;
+				}
+			}
+
 			// Activating enemies and giving them positions
 			enemyTimer++; // Number of frames
 
@@ -216,6 +238,7 @@ void main() {
 
 				}
 			}
+			
 			UpdateTimer(&flashingTimer);
 
 			if (collided && isTimerDone(&flashingTimer))
@@ -224,29 +247,6 @@ void main() {
 			if (playerHealth <= 0)
 				gameOver = true;
 		}
-
-		//activate bullets
-		for (int i = 0;i < MAX_BULLETS;i++) {
-			if (!bullets[i].active && IsKeyPressed(MOUSE_BUTTON_LEFT)) {
-				bullets[i].active = true;
-				bullets[i].position = playerPos;
-				bullets[i].BulletHitbox.x = bullets[i].position.x;
-				bullets[i].BulletHitbox.y = bullets[i].position.y;
-			break;
-			}
-		}
-
-		//update bullets
-		for (int i = 0;i < MAX_BULLETS;i++) {
-			if (bullets[i].active) {
-				bullets[i].direction.x = GetMousePosition().x - playerPos.x;
-				bullets[i].direction.y = GetMousePosition().y - playerPos.y;
-
-				bullets[i].position.x += bullets[i].direction.x * bullets[i].bulletspeed;
-				bullets[i].position.y += bullets[i].direction.y * bullets[i].bulletspeed;
-			}
-
-
 
 			// DRAWING
 			BeginDrawing();
@@ -272,7 +272,6 @@ void main() {
 			{
 				if (bullets[i].active) {
 					DrawRectangleRec(bullets[i].BulletHitbox, RED);
-
 				}
 			}
 
@@ -295,6 +294,5 @@ void main() {
 
 			EndDrawing();
 
-		}
 	}
 }
