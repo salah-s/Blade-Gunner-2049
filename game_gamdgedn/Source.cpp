@@ -30,6 +30,29 @@ float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
 	*/
 }
 
+struct Timer 
+{
+	float LifeTime;
+};
+
+void StartTimer(Timer* timer, float lifeTime)
+{
+	if (timer != NULL)
+		timer->LifeTime = lifeTime;
+}
+
+float UpdateTimer(Timer* timer)
+{
+	if (timer != NULL && timer->LifeTime > 0)
+		return timer->LifeTime -= GetFrameTime();
+}
+
+bool isTimerDone(Timer* timer)
+{
+	if (timer != NULL)
+		return timer->LifeTime <= 0;
+}
+
 struct Enemy { 
 	Texture2D texture;
 	
@@ -67,8 +90,12 @@ void main() {
 	int playerHealth = 10;
 	
 	float enemySpawnRate = 1.0f;
+	float flashingDuration = 2.0f;
 
 	bool collided = false;
+
+	Timer flashingTimer;
+	flashingTimer.LifeTime = 0.0f;
 
 	// Initializing camera
 	Camera2D playerCam = { 0 };
@@ -153,19 +180,20 @@ void main() {
 				enemies[i].EnemyHitbox.y = enemies[i].position.y +10;
 
 				// Check collision between player and enemy
-				if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox))
+				if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox) && isTimerDone(&flashingTimer))
 				{
 					collided = true;
-					enemies[i].active = false;
+					playerHealth--;
+					StartTimer(&flashingTimer, flashingDuration);
 				}
 			}
 		}
 
-		// If collided, decrease the player's health
-		if (collided)
+		UpdateTimer(&flashingTimer);
+		
+		if (collided && isTimerDone(&flashingTimer))
 		{
-			playerHealth--;
-			collided = false;
+				collided = false;
 		}
 	
 		// Drawing
