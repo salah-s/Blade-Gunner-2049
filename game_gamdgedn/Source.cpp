@@ -5,8 +5,8 @@
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define MAX_ENEMIES 200
-#define MAX_BULLETS 20
+#define MAX_ENEMIES 100
+#define MAX_BULLETS 30
 
 // A function that generates a random number between a min dist from the player and a max dist from the player
 float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
@@ -29,9 +29,10 @@ float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
 		else if(decision == 1)
 			return playerPos - distance;
 			*/
+	
 }
 
-//  define a timer 
+//  timer struct 
 struct Timer {
 	float Lifetime;
 };
@@ -61,6 +62,7 @@ struct Enemy {
 	int hyp;
 	bool active;
 	int enemySpeed;
+	int health;
 	
 };
 struct Bullet {
@@ -100,7 +102,7 @@ void main() {
 
 	// Variables
 	int playerSpeed = 3;
-	int playerHealth = 10;
+	int playerHealth = 3;
 	int bulletspeed = 2;
 
 	// enemy timer (old timer system)
@@ -121,7 +123,6 @@ void main() {
 	playerCam.zoom = 1.4f;
 
 	// Initiallizing enemies
-
 	Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
 
 	for (int i = 0; i < MAX_ENEMIES; i++)
@@ -131,31 +132,33 @@ void main() {
 		enemies[i].EnemyHitbox.width = 26;
 		enemies[i].EnemyHitbox.height = 26;
 		enemies[i].enemySpeed = 2;
+		enemies[i].health = 2;
+		
 	}
 
 	// intializing bullets
 	Bullet bullets[MAX_BULLETS] = { 0 };   // An array of "Bullet(s)"
 	for (int i = 0; i < MAX_BULLETS; i++) {
 		bullets[i].position = Vector2{ 0,0 };
-		bullets[i].active = false;
+		
 
-		bullets[i].BulletHitbox.width = 5;
-		bullets[i].BulletHitbox.height = 5;
+		bullets[i].BulletHitbox.width = 10;
+		bullets[i].BulletHitbox.height = 10;
 
 		//initializing bullet timer
-		// bullets[i].bullettimer;
+		bullets[i].bullettimer;
 		bullets[i].bulletlife = 2.0f;
-
-
 	}
 
 
 	//initiallizing timers
 
-
 	Timer flashingTimer;
 	flashingTimer.Lifetime = 0.0f;
-
+	Timer firerateTimer;
+	firerateTimer.Lifetime = 0.0f;
+	float firerate = 0.4;
+	//***********************************************************************************************************************
 	// GAME LOOP**************************************************************************************************************
 	while (!WindowShouldClose()) {
 
@@ -190,26 +193,45 @@ void main() {
 
 			//activate bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
-				if (!bullets[i].active && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+				if (isTimerDone(&bullets[i].bullettimer) && IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isTimerDone(&firerateTimer) ) {
 					bullets[i].active = true;
-
+					
 					bullets[i].position = playerPos;
-
 					bullets[i].direction = Vector2Subtract(GetMousePosition(),playerPos);
 
-					break;
+					bullets[i].BulletHitbox.x = playerPos.x;
+					bullets[i].BulletHitbox.y = playerPos.y;
+
+					StartTimer(&bullets[i].bullettimer, bullets[i].bulletlife); // a bullet is active if its bullet timer hasn't run out yet
+					StartTimer(&firerateTimer, firerate); // the firerate timer determines the minimum  time between each bullet
+					break; 
 				}
 			}
-			printf("%d \t %d \t",GetMouseX(), GetMouseY());
+			
+UpdateTimer(&firerateTimer);
 
 			//update bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
-
-				if (bullets[i].active) { 
-
-						bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()));
-				
+				UpdateTimer(&bullets[i].bullettimer);
+				if (!isTimerDone(&bullets[i].bullettimer) && bullets[i].active ==true ) {
 					
+					bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()));
+					
+					 bullets[i].BulletHitbox.x = bullets[i].position.x;
+						bullets[i].BulletHitbox.y = bullets[i].position.y ;
+						
+						//checking collision between 1)bullet and 2)enemies
+						for (int j = 0;j < MAX_ENEMIES;j++) {
+							if (CheckCollisionRecs(bullets[i].BulletHitbox,enemies[j].EnemyHitbox) && enemies[j].active==true&& bullets[i].active == true) {
+								enemies[j].health--;
+								bullets[i].active = false;
+								
+									//throwing the bullet away so it disapears (not necessary for the hitbox but necessary for the texture)
+									bullets[i].BulletHitbox.x = SCREEN_WIDTH;
+									bullets[i].BulletHitbox.y = SCREEN_HEIGHT;
+								
+							}
+						}
 				}
 			}
 			
@@ -224,10 +246,11 @@ void main() {
 					enemies[i].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
 					enemies[i].EnemyHitbox.x = enemies[i].position.x;
 					enemies[i].EnemyHitbox.y = enemies[i].position.y;
-
+					enemies[i].health = 2;
 					break;
 				}
 			}
+
 
 			// Update enemies position to follow player
 			for (int i = 0; i < MAX_ENEMIES; i++) {
@@ -242,8 +265,6 @@ void main() {
 						enemies[i].direction.x /= enemies[i].hyp;
 						enemies[i].direction.y /= enemies[i].hyp;
 					} 
-					
-
 					// Update the enemy's position (movement)
 					enemies[i].position.x += enemies[i].direction.x * 1;
 					enemies[i].position.y += enemies[i].direction.y * 1;
@@ -251,7 +272,7 @@ void main() {
 					enemies[i].EnemyHitbox.x = enemies[i].position.x + 15;
 					enemies[i].EnemyHitbox.y = enemies[i].position.y + 10;
 
-					// Check collision between player and enemy
+					// Check collision between enemy and player 
 					if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox) && isTimerDone(&flashingTimer) && playerHealth > 0)
 					{
 						collided = true;
@@ -260,21 +281,22 @@ void main() {
 						StartTimer(&flashingTimer, flashingDuration);
 					}
 
+					if (enemies[i].health == 0) //enemy's death condition
+						enemies[i].active = false;
+					
 				}
 			}
 
 			UpdateTimer(&flashingTimer);
-
-			if (collided && isTimerDone(&flashingTimer))
+if (collided && isTimerDone(&flashingTimer))
 				collided = false;
-
 			if (playerHealth <= 0)
 				gameOver = true;
 		}
 
 		// DRAWING
 		BeginDrawing();
-		//BeginMode2D(playerCam); // Showing camera
+		// BeginMode2D(playerCam); // Showing camera
 
 		ClearBackground(WHITE);
 
@@ -288,32 +310,33 @@ void main() {
 		{
 			if (enemies[i].active) {
 				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
-				//DrawRectangleRec(enemies[i].EnemyHitbox, RED);  
+				DrawRectangleRec(enemies[i].EnemyHitbox, RED);
 			}
 		}
 		//draw bullets
 		for (int i = 0; i < MAX_BULLETS; i++) {
 
-			if (bullets[i].active) {  //isTimerDone(&bullets[i].bullettimer)
-				DrawCircleV(bullets[i].position, 10, RED);
+			if (!isTimerDone(&bullets[i].bullettimer)) {  
+				//DrawCircleV(bullets[i].position, 10, RED);
+					DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
 			}
 		}
 			
 
 			//other drawings
-			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 24, BLACK);
+			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
 
 			if (gameOver)
-				DrawText("GAME OVER", 100, 100, 42, BLACK);
+				DrawText("GAME OVER", 100, 100, 80, BLACK);
 
 			if (collided)
 				DrawText("colision", 50, 50, 42, BLACK);
 			else
 				DrawText("no colision", 50, 50, 42, BLACK);
 			if (!(flashingTimer.Lifetime <= 0.0))
-				DrawText("timer is running!", 50, 10, 42, BLACK);
+				DrawText("INVINCIBLE", playerPos.x-30,playerPos.y,20, WHITE);
 			else
-				DrawText("timer is not running", 50, 10, 42, BLACK);
+				DrawText("currently not invincible", 50, 40, 20, BLACK);
 
 			EndDrawing();
 
