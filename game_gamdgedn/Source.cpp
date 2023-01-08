@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <stdio.h>
+#include<stdlib.h>
 #include <raymath.h>
 
 #define SCREEN_WIDTH 1920
@@ -136,7 +137,8 @@ void main() {
 	playerCam.zoom = 2.5f;
 
 	// Initiallizing enemies
-	Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
+	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
+	Enemy* enemies = (Enemy*)malloc(MAX_ENEMIES * sizeof(Enemy));
 
 	for (int i = 0; i < MAX_ENEMIES; i++)
 	{
@@ -151,7 +153,8 @@ void main() {
 	}
 
 	// intializing bullets
-	Bullet bullets[MAX_BULLETS] = { 0 };   // An array of "Bullet(s)"
+	// Bullet bullets[MAX_BULLETS] = { 0 };   // An array of "Bullet(s)"
+	Bullet* bullets = (Bullet*)malloc(MAX_BULLETS * sizeof(Bullet));
 	for (int i = 0; i < MAX_BULLETS; i++) {
 		bullets[i].position = Vector2{ 0,0 };
 
