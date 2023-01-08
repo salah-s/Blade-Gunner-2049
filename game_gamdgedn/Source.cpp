@@ -171,14 +171,18 @@ void main() {
 	//animation related variables
 	float mcFramewidth = (float)(mcTex.width / 5); //player animation
 	int mcMaxFrames = (mcTex.width / (int)mcFramewidth);
-	float mcframetimer = 0.0f;
+	Timer mcframetimer;
+	float mcFrameDuration = 0.2f;
 	int mcframe = 0;
 
 
 	float enemyFramewidth = (float)(mcTex.width / 5); //enemy animation
 	int enemyMaxFrame = (enemy1tex.width / (int)enemyFramewidth);
 
-
+	PlayerAnimationRec.width = mcFramewidth;
+	PlayerAnimationRec.height = mcTex.height;
+	PlayerAnimationRec.x = 0;
+	PlayerAnimationRec.y = 0;
 
 	//***********************************************************************************************************************
 	// GAME LOOP**************************************************************************************************************
@@ -198,15 +202,27 @@ void main() {
 
 			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 			GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
+
+			
+
+			if (isTimerDone(&mcframetimer))
+			{
+				StartTimer(&mcframetimer, mcFrameDuration);
+				mcframe++;
+				PlayerAnimationRec.x = mcframe * mcFramewidth;
+			}
+
+			UpdateTimer(&mcframetimer);
+			
 			// Player movement
 			if (IsKeyDown(KEY_D)) {
-			playerPos.x += playerSpeed;
-			mcTex.width = mcTex.width;
+				playerPos.x += playerSpeed;
+				PlayerAnimationRec.width = mcFramewidth;
 			}
 
 			if (IsKeyDown(KEY_A)) {
 			playerPos.x -= playerSpeed;
-			PlayerAnimationRec.width = -(mcTex.width);
+			PlayerAnimationRec.width = -(mcFramewidth);
 			
 			}
 		
@@ -332,17 +348,9 @@ void main() {
 		DrawTexture(bg2, 0, 0, WHITE);
 		//DrawTexture(bg, 0, 0, WHITE);
 		
-		//drawing mc animation
-		mcframetimer += GetFrameTime();
-		if (mcframetimer >= 0.20f) {
-			mcframetimer = 0;
-			mcframe++;
-		}
-		mcframe = mcframe % mcMaxFrames;
 			//DrawRectangleRec(PlayerHitbox, BLUE);
-		PlayerAnimationRec = {(mcFramewidth * mcframe),0,mcFramewidth,(float)mcTex.height};
+		
 		DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
-	
 		
 
 		// Drawing active enemies
@@ -350,7 +358,7 @@ void main() {
 		{
 			if (enemies[i].active) {
 
-				//drawing mc animation
+				//drawing enemy animation
 				enemies[i].enemyFrametimer += GetFrameTime();
 				if (enemies[i].enemyFrametimer >= 0.3f) {
 					enemies[i].enemyFrametimer = 0;
