@@ -106,7 +106,8 @@ void main() {
 
 	// Rectangles
 	Rectangle PlayerHitbox = { 00,00,20,45 };
-
+	Rectangle PlayerAnimationRec;
+	Rectangle EnemyAnimationRec;
 	// Variables
 	int playerSpeed = 3;
 	int playerHealth = 3;
@@ -198,12 +199,17 @@ void main() {
 			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 			GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
 			// Player movement
-			if (IsKeyDown(KEY_D))
-				playerPos.x += playerSpeed;
+			if (IsKeyDown(KEY_D)) {
+			playerPos.x += playerSpeed;
+			mcTex.width = mcTex.width;
+			}
 
-			if (IsKeyDown(KEY_A))
-				playerPos.x -= playerSpeed;
-
+			if (IsKeyDown(KEY_A)) {
+			playerPos.x -= playerSpeed;
+			PlayerAnimationRec.width = -(mcTex.width);
+			
+			}
+		
 			if (IsKeyDown(KEY_W))
 				playerPos.y -= playerSpeed;
 
@@ -334,9 +340,8 @@ void main() {
 		}
 		mcframe = mcframe % mcMaxFrames;
 			//DrawRectangleRec(PlayerHitbox, BLUE);
-		DrawTextureRec(mcTex,
-			Rectangle{(mcFramewidth*mcframe),0,mcFramewidth,(float)mcTex.height}
-		, playerPos, WHITE);
+		PlayerAnimationRec = {(mcFramewidth * mcframe),0,mcFramewidth,(float)mcTex.height};
+		DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
 	
 		
 
@@ -373,7 +378,7 @@ void main() {
 		
 			//other drawings
 			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
-
+			
 			if (gameOver)
 				DrawText("GAME OVER", playerPos.x-220, playerPos.y, 80,WHITE);
 
