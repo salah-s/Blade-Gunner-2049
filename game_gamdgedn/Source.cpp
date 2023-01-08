@@ -90,7 +90,7 @@ void main() {
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "game title");
 	SetTargetFPS(60);
 
-	FILE *scores;
+	FILE* scores;
 
 	// Loading textures
 	Texture2D bg = LoadTexture("resources/bg2.png");
@@ -102,8 +102,8 @@ void main() {
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 
 	// Vectors
-	Vector2 playerPos = { SCREEN_WIDTH/2, SCREEN_HEIGHT/2 };
-	Vector2 GunPos = Vector2Add(playerPos, Vector2{20,20});
+	Vector2 playerPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+	Vector2 GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
 	Vector2 enemyPos;
 
 	// Rectangles
@@ -154,7 +154,7 @@ void main() {
 	Bullet bullets[MAX_BULLETS] = { 0 };   // An array of "Bullet(s)"
 	for (int i = 0; i < MAX_BULLETS; i++) {
 		bullets[i].position = Vector2{ 0,0 };
-		
+
 
 		bullets[i].BulletHitbox.width = 10;
 		bullets[i].BulletHitbox.height = 10;
@@ -189,6 +189,7 @@ void main() {
 	PlayerAnimationRec.x = 0;
 	PlayerAnimationRec.y = 0;
 
+	// Read highscore from file
 	scores = fopen("resources/Scores.txt", "r");
 	if (scores != NULL)
 	{
@@ -215,7 +216,7 @@ void main() {
 			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 			GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
 
-			
+
 
 			if (isTimerDone(&mcframetimer))
 			{
@@ -225,7 +226,7 @@ void main() {
 			}
 
 			UpdateTimer(&mcframetimer);
-			
+
 			// Player movement
 			if (IsKeyDown(KEY_D)) {
 				playerPos.x += playerSpeed;
@@ -233,33 +234,33 @@ void main() {
 			}
 
 			if (IsKeyDown(KEY_A)) {
-			playerPos.x -= playerSpeed;
-			PlayerAnimationRec.width = -(mcFramewidth);
-			
+				playerPos.x -= playerSpeed;
+				PlayerAnimationRec.width = -(mcFramewidth);
+
 			}
-		
+
 			if (IsKeyDown(KEY_W))
 				playerPos.y -= playerSpeed;
 
 			if (IsKeyDown(KEY_S))
 				playerPos.y += playerSpeed;
 
-			
+
 
 			//activate bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
-				if (isTimerDone(&bullets[i].bullettimer) && IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isTimerDone(&firerateTimer) ) {
+				if (isTimerDone(&bullets[i].bullettimer) && IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isTimerDone(&firerateTimer)) {
 					bullets[i].active = true;
-					
+
 					bullets[i].position = GunPos;
-					bullets[i].direction = Vector2Subtract(GetScreenToWorld2D(GetMousePosition(), playerCam), GunPos); 
+					bullets[i].direction = Vector2Subtract(GetScreenToWorld2D(GetMousePosition(), playerCam), GunPos);
 
 					bullets[i].BulletHitbox.x = GunPos.x;
 					bullets[i].BulletHitbox.y = GunPos.y;
 
 					StartTimer(&bullets[i].bullettimer, bullets[i].bulletlife); // a bullet is active if its bullet timer hasn't run out yet
 					StartTimer(&firerateTimer, firerate); // the firerate timer determines the minimum  time between each bullet
-					break; 
+					break;
 				}
 			}
 
@@ -270,14 +271,14 @@ void main() {
 				UpdateTimer(&bullets[i].bullettimer);
 				if (!isTimerDone(&bullets[i].bullettimer) && bullets[i].active == true) {
 
-					bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()*bulletspeed));
+					bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime() * bulletspeed));
 
 					bullets[i].BulletHitbox.x = bullets[i].position.x;
 					bullets[i].BulletHitbox.y = bullets[i].position.y;
 
 					//checking collision between 1)bullet and 2)enemies
-					for (int j = 0;j < MAX_ENEMIES;j++) {
-						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active==true) {
+					for (int j = 0; j < MAX_ENEMIES; j++) {
+						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active == true) {
 							enemies[j].health--;
 							bullets[i].active = false;
 
@@ -349,78 +350,76 @@ void main() {
 				gameOver = true;
 		}
 
-		if (scores != NULL)
+		// Save new highscore
+		if (currentScore > highScore)
 		{
-			if (currentScore > highScore)
-			{
-				scores = fopen("resources/Scores.txt", "w");
-				highScore = currentScore;
-				fprintf(scores, "%d", highScore);
-			}
+			scores = fopen("resources/Scores.txt", "w");
+			highScore = currentScore;
+			fprintf(scores, "%d", highScore);
 		}
-		fclose(scores);
+	
+	fclose(scores);
 
-		// DRAWING
-		BeginDrawing();
-		 BeginMode2D(playerCam); // Showing camera
+	// DRAWING
+	BeginDrawing();
+	BeginMode2D(playerCam); // Showing camera
 
-		 DrawRectangle(-100,  - 100, 20, 20, RED);
+	DrawRectangle(-100, -100, 20, 20, RED);
 
-		ClearBackground(WHITE);
-		//drawing background
-		DrawTexture(bg2, 0, 0, WHITE);
-		//DrawTexture(bg, 0, 0, WHITE);
-		
-			//DrawRectangleRec(PlayerHitbox, BLUE);
-		
-		DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
-		
+	ClearBackground(WHITE);
+	//drawing background
+	DrawTexture(bg2, 0, 0, WHITE);
+	//DrawTexture(bg, 0, 0, WHITE);
 
-		// Drawing active enemies
-		for (int i = 0; i < MAX_ENEMIES; i++)
-		{
-			if (enemies[i].active) {
+		//DrawRectangleRec(PlayerHitbox, BLUE);
 
-				//drawing enemy animation
-				enemies[i].enemyFrametimer += GetFrameTime();
-				if (enemies[i].enemyFrametimer >= 0.3f) {
-					enemies[i].enemyFrametimer = 0;
-					enemies[i].enemyframe++;
-				}
-				enemies[i].enemyframe = enemies[i].enemyframe % enemyMaxFrame;
+	DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
 
-				DrawTextureRec(enemy1tex,
-					Rectangle{(enemyFramewidth*enemies[i].enemyframe),0,enemyFramewidth,(float)enemy1tex.height}
-				,enemies[i].position, WHITE);
 
-				// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
+	// Drawing active enemies
+	for (int i = 0; i < MAX_ENEMIES; i++)
+	{
+		if (enemies[i].active) {
+
+			//drawing enemy animation
+			enemies[i].enemyFrametimer += GetFrameTime();
+			if (enemies[i].enemyFrametimer >= 0.3f) {
+				enemies[i].enemyFrametimer = 0;
+				enemies[i].enemyframe++;
 			}
+			enemies[i].enemyframe = enemies[i].enemyframe % enemyMaxFrame;
+
+			DrawTextureRec(enemy1tex,
+				Rectangle{ (enemyFramewidth * enemies[i].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
+			, enemies[i].position, WHITE);
+
+			// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 		}
-		//draw bullets
-		for (int i = 0; i < MAX_BULLETS; i++) {
+	}
+	//draw bullets
+	for (int i = 0; i < MAX_BULLETS; i++) {
 
-			if (!isTimerDone(&bullets[i].bullettimer)) {  
-				//DrawCircleV(bullets[i].position, 10, RED);
-					//DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
-					DrawTexture(bullet1tex,bullets[i].BulletHitbox.x,bullets[i].BulletHitbox.y,WHITE);
-			}
+		if (!isTimerDone(&bullets[i].bullettimer)) {
+			//DrawCircleV(bullets[i].position, 10, RED);
+				//DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
+			DrawTexture(bullet1tex, bullets[i].BulletHitbox.x, bullets[i].BulletHitbox.y, WHITE);
 		}
-			
-		
-			//other drawings
-			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
-			
-			if (gameOver)
-				DrawText("GAME OVER", playerPos.x-220, playerPos.y, 80,WHITE);
+	}
 
-			
-			if (!(flashingTimer.Lifetime <= 0.0)&&playerHealth!=0)
-				DrawText("INVINCIBLE", playerPos.x-30,playerPos.y,20, WHITE);
-			else
-				DrawText("currently not invincible", 50, 40, 20, BLACK);
 
-			EndDrawing();
-			
-		
+	//other drawings
+	DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
+
+	if (gameOver)
+		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 80, WHITE);
+
+
+	if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
+		DrawText("INVINCIBLE", playerPos.x - 30, playerPos.y, 20, WHITE);
+	else
+		DrawText("currently not invincible", 50, 40, 20, BLACK);
+
+	EndDrawing();
+
 	}
 }
