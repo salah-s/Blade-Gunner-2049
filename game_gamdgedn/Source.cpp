@@ -1,6 +1,5 @@
 #include <raylib.h>
 #include <stdio.h>
-#include <math.h>
 #include <raymath.h>
 
 #define SCREEN_WIDTH 1280
@@ -63,6 +62,9 @@ struct Enemy {
 	bool active;
 	int enemySpeed;
 	int health;
+
+	float enemyFrametimer;
+	int enemyframe;
 	
 };
 struct Bullet {
@@ -92,6 +94,9 @@ void main() {
 	Texture2D bg = LoadTexture("resources/bg.png");
 	Texture2D playerTex = LoadTexture("resources/p1r.png");
 	Texture2D enemyTex = LoadTexture("resources/mob.png");
+	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
+	Texture2D enemy1tex = LoadTexture("resources/enemy_1.png");
+	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 
 	// Vectors
 	Vector2 playerPos = { 0, 0 };
@@ -133,7 +138,8 @@ void main() {
 		enemies[i].EnemyHitbox.height = 26;
 		enemies[i].enemySpeed = 2;
 		enemies[i].health = 2;
-		
+		enemies[i].enemyFrametimer = 0.0f;
+		enemies[i].enemyframe = 0;
 	}
 
 	// intializing bullets
@@ -158,6 +164,19 @@ void main() {
 	Timer firerateTimer;
 	firerateTimer.Lifetime = 0.0f;
 	float firerate = 0.4;
+
+	//animation related variables
+	float mcFramewidth = (float)(mcTex.width / 5); //player animation
+	int mcMaxFrames = (mcTex.width / (int)mcFramewidth);
+	float mcframetimer = 0.0f;
+	int mcframe = 0;
+
+
+	float enemyFramewidth = (float)(mcTex.width / 4.6); //enemy animation
+	int enemyMaxFrame = (enemy1tex.width / (int)enemyFramewidth);
+
+
+
 	//***********************************************************************************************************************
 	// GAME LOOP**************************************************************************************************************
 	while (!WindowShouldClose()) {
@@ -177,16 +196,16 @@ void main() {
 			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 
 			// Player movement
-			if (IsKeyDown(KEY_RIGHT))
+			if (IsKeyDown(KEY_D))
 				playerPos.x += playerSpeed;
 
-			if (IsKeyDown(KEY_LEFT))
+			if (IsKeyDown(KEY_A))
 				playerPos.x -= playerSpeed;
 
-			if (IsKeyDown(KEY_UP))
+			if (IsKeyDown(KEY_W))
 				playerPos.y -= playerSpeed;
 
-			if (IsKeyDown(KEY_DOWN))
+			if (IsKeyDown(KEY_S))
 				playerPos.y += playerSpeed;
 
 			
@@ -207,34 +226,34 @@ void main() {
 					break; 
 				}
 			}
-			
-UpdateTimer(&firerateTimer);
+
+			UpdateTimer(&firerateTimer);
 
 			//update bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
 				UpdateTimer(&bullets[i].bullettimer);
-				if (!isTimerDone(&bullets[i].bullettimer) && bullets[i].active ==true ) {
-					
+				if (!isTimerDone(&bullets[i].bullettimer) && bullets[i].active == true) {
+
 					bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()));
-					
-					 bullets[i].BulletHitbox.x = bullets[i].position.x;
-						bullets[i].BulletHitbox.y = bullets[i].position.y ;
-						
-						//checking collision between 1)bullet and 2)enemies
-						for (int j = 0;j < MAX_ENEMIES;j++) {
-							if (CheckCollisionRecs(bullets[i].BulletHitbox,enemies[j].EnemyHitbox) && enemies[j].active==true&& bullets[i].active == true) {
-								enemies[j].health--;
-								bullets[i].active = false;
-								
-									//throwing the bullet away so it disapears (not necessary for the hitbox but necessary for the texture)
-									bullets[i].BulletHitbox.x = SCREEN_WIDTH;
-									bullets[i].BulletHitbox.y = SCREEN_HEIGHT;
-								
-							}
+
+					bullets[i].BulletHitbox.x = bullets[i].position.x;
+					bullets[i].BulletHitbox.y = bullets[i].position.y;
+
+					//checking collision between 1)bullet and 2)enemies
+					for (int j = 0;j < MAX_ENEMIES;j++) {
+						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active == true) {
+							enemies[j].health--;
+							bullets[i].active = false;
+
+							//throwing the bullet away so it disapears (not necessary for the hitbox but necessary for the texture)
+							bullets[i].BulletHitbox.x = SCREEN_WIDTH;
+							bullets[i].BulletHitbox.y = SCREEN_HEIGHT;
+
 						}
+					}
 				}
 			}
-			
+
 			// Activating enemies and giving them positions
 			enemyTimer++; // Number of frames
 
@@ -256,15 +275,15 @@ UpdateTimer(&firerateTimer);
 			for (int i = 0; i < MAX_ENEMIES; i++) {
 				if (enemies[i].active) {
 					// Calculate the direction in which to follow player: player position - enemy position
-					
+
 					enemies[i].direction = Vector2Subtract(playerPos, enemies[i].position);
-				
+
 					//Normalizing the direction 
 					enemies[i].hyp = sqrt(enemies[i].direction.x * enemies[i].direction.x + enemies[i].direction.y * enemies[i].direction.y);
 					if (enemies[i].hyp != 0) {
 						enemies[i].direction.x /= enemies[i].hyp;
 						enemies[i].direction.y /= enemies[i].hyp;
-					} 
+					}
 					// Update the enemy's position (movement)
 					enemies[i].position.x += enemies[i].direction.x * 1;
 					enemies[i].position.y += enemies[i].direction.y * 1;
@@ -283,12 +302,12 @@ UpdateTimer(&firerateTimer);
 
 					if (enemies[i].health == 0) //enemy's death condition
 						enemies[i].active = false;
-					
+
 				}
 			}
 
 			UpdateTimer(&flashingTimer);
-if (collided && isTimerDone(&flashingTimer))
+			if (collided && isTimerDone(&flashingTimer))
 				collided = false;
 			if (playerHealth <= 0)
 				gameOver = true;
@@ -296,21 +315,44 @@ if (collided && isTimerDone(&flashingTimer))
 
 		// DRAWING
 		BeginDrawing();
-		// BeginMode2D(playerCam); // Showing camera
+		BeginMode2D(playerCam); // Showing camera
 
 		ClearBackground(WHITE);
 
 		DrawTexture(bg, 0, 0, WHITE);
-		DrawTexture(playerTex, playerPos.x, playerPos.y, WHITE);
-
-		//DrawRectangleRec(PlayerHitbox, BLUE);
+	
+		//drawing mc animation
+		mcframetimer += GetFrameTime();
+		if (mcframetimer >= 0.20f) {
+			mcframetimer = 0;
+			mcframe++;
+		}
+		mcframe = mcframe % mcMaxFrames;
+			//DrawRectangleRec(PlayerHitbox, BLUE);
+		DrawTextureRec(mcTex,
+			Rectangle{(mcFramewidth*mcframe),0,mcFramewidth,(float)mcTex.height}
+		, playerPos, WHITE);
+	
+		
 
 		// Drawing active enemies
 		for (int i = 0; i < MAX_ENEMIES; i++)
 		{
 			if (enemies[i].active) {
-				DrawTexture(enemyTex, enemies[i].position.x, enemies[i].position.y, WHITE);
-				DrawRectangleRec(enemies[i].EnemyHitbox, RED);
+
+				//drawing mc animation
+				enemies[i].enemyFrametimer += GetFrameTime();
+				if (enemies[i].enemyFrametimer >= 0.3f) {
+					enemies[i].enemyFrametimer = 0;
+					enemies[i].enemyframe++;
+				}
+				enemies[i].enemyframe = enemies[i].enemyframe % enemyMaxFrame;
+
+				DrawTextureRec(enemy1tex,
+					Rectangle{(enemyFramewidth*enemies[i].enemyframe),0,enemyFramewidth,(float)enemy1tex.height}
+				,enemies[i].position, WHITE);
+
+				// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 			}
 		}
 		//draw bullets
@@ -318,7 +360,8 @@ if (collided && isTimerDone(&flashingTimer))
 
 			if (!isTimerDone(&bullets[i].bullettimer)) {  
 				//DrawCircleV(bullets[i].position, 10, RED);
-					DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
+					//DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
+					DrawTexture(bullet1tex,bullets[i].BulletHitbox.x,bullets[i].BulletHitbox.y,WHITE);
 			}
 		}
 			
