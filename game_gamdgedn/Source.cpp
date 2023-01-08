@@ -90,6 +90,8 @@ void main() {
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "game title");
 	SetTargetFPS(60);
 
+	FILE *scores;
+
 	// Loading textures
 	Texture2D bg = LoadTexture("resources/bg2.png");
 	Texture2D bg2 = LoadTexture("resources/bg7.png");
@@ -116,6 +118,9 @@ void main() {
 	// enemy timer (old timer system)
 	int enemyTimer = 0;
 	float enemySpawnRate = 1.0f;
+
+	int currentScore = 200;
+	int highScore = 0;
 
 	float flashingDuration = 2.0f;
 
@@ -183,6 +188,13 @@ void main() {
 	PlayerAnimationRec.height = mcTex.height;
 	PlayerAnimationRec.x = 0;
 	PlayerAnimationRec.y = 0;
+
+	scores = fopen("resources/Scores.txt", "r");
+	if (scores != NULL)
+	{
+		fscanf_s(scores, "%d", &highScore);
+	}
+	fclose(scores);
 
 	//***********************************************************************************************************************
 	// GAME LOOP**************************************************************************************************************
@@ -336,6 +348,17 @@ void main() {
 			if (playerHealth <= 0)
 				gameOver = true;
 		}
+
+		if (scores != NULL)
+		{
+			if (currentScore > highScore)
+			{
+				scores = fopen("resources/Scores.txt", "w");
+				highScore = currentScore;
+				fprintf(scores, "%d", highScore);
+			}
+		}
+		fclose(scores);
 
 		// DRAWING
 		BeginDrawing();
