@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <raymath.h>
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
 #define MAX_ENEMIES 100
 #define MAX_BULLETS 30
 
@@ -91,15 +91,17 @@ void main() {
 	SetTargetFPS(60);
 
 	// Loading textures
-	Texture2D bg = LoadTexture("resources/bg.png");
+	Texture2D bg = LoadTexture("resources/bg2.png");
+	Texture2D bg2 = LoadTexture("resources/bg7.png");
 	Texture2D playerTex = LoadTexture("resources/p1r.png");
 	Texture2D enemyTex = LoadTexture("resources/mob.png");
 	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
-	Texture2D enemy1tex = LoadTexture("resources/enemy_1.png");
+	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 
 	// Vectors
-	Vector2 playerPos = { 0, 0 };
+	Vector2 playerPos = { SCREEN_WIDTH/2, SCREEN_HEIGHT/2 };
+	Vector2 GunPos = Vector2Add(playerPos, Vector2{20,20});
 	Vector2 enemyPos;
 
 	// Rectangles
@@ -125,7 +127,7 @@ void main() {
 	playerCam.target = playerPos;
 	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (playerTex.width / 2), (SCREEN_HEIGHT / 2.0f) - (playerTex.height / 2) };
 	playerCam.rotation = 0.0f;
-	playerCam.zoom = 1.4f;
+	playerCam.zoom = 2.5f;
 
 	// Initiallizing enemies
 	Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
@@ -172,7 +174,7 @@ void main() {
 	int mcframe = 0;
 
 
-	float enemyFramewidth = (float)(mcTex.width / 4.6); //enemy animation
+	float enemyFramewidth = (float)(mcTex.width / 5); //enemy animation
 	int enemyMaxFrame = (enemy1tex.width / (int)enemyFramewidth);
 
 
@@ -194,7 +196,7 @@ void main() {
 			PlayerHitbox.y = playerPos.y + 5;
 
 			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
-
+			GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
 			// Player movement
 			if (IsKeyDown(KEY_D))
 				playerPos.x += playerSpeed;
@@ -215,11 +217,11 @@ void main() {
 				if (isTimerDone(&bullets[i].bullettimer) && IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isTimerDone(&firerateTimer) ) {
 					bullets[i].active = true;
 					
-					bullets[i].position = playerPos;
-					bullets[i].direction = Vector2Subtract(GetMousePosition(),playerPos);
+					bullets[i].position = GunPos;
+					bullets[i].direction = Vector2Subtract(GetMousePosition(), GunPos);
 
-					bullets[i].BulletHitbox.x = playerPos.x;
-					bullets[i].BulletHitbox.y = playerPos.y;
+					bullets[i].BulletHitbox.x = GunPos.x;
+					bullets[i].BulletHitbox.y = GunPos.y;
 
 					StartTimer(&bullets[i].bullettimer, bullets[i].bulletlife); // a bullet is active if its bullet timer hasn't run out yet
 					StartTimer(&firerateTimer, firerate); // the firerate timer determines the minimum  time between each bullet
@@ -315,12 +317,13 @@ void main() {
 
 		// DRAWING
 		BeginDrawing();
-		BeginMode2D(playerCam); // Showing camera
+		 BeginMode2D(playerCam); // Showing camera
 
 		ClearBackground(WHITE);
-
-		DrawTexture(bg, 0, 0, WHITE);
-	
+		//drawing background
+		DrawTexture(bg2, 0, 0, WHITE);
+		//DrawTexture(bg, 0, 0, WHITE);
+		
 		//drawing mc animation
 		mcframetimer += GetFrameTime();
 		if (mcframetimer >= 0.20f) {
