@@ -319,6 +319,8 @@ void main() {
 		BeginDrawing();
 		 BeginMode2D(playerCam); // Showing camera
 
+		 DrawRectangle(-100,  - 100, 20, 20, RED);
+
 		ClearBackground(WHITE);
 		//drawing background
 		DrawTexture(bg2, 0, 0, WHITE);
@@ -368,7 +370,7 @@ void main() {
 			}
 		}
 			
-
+		
 			//other drawings
 			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
 
