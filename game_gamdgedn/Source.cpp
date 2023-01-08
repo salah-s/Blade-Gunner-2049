@@ -110,7 +110,7 @@ void main() {
 	// Variables
 	int playerSpeed = 3;
 	int playerHealth = 3;
-	int bulletspeed = 2;
+	int bulletspeed = 5;
 
 	// enemy timer (old timer system)
 	int enemyTimer = 0;
@@ -218,7 +218,7 @@ void main() {
 					bullets[i].active = true;
 					
 					bullets[i].position = GunPos;
-					bullets[i].direction = Vector2Subtract(GetMousePosition(), GunPos);
+					bullets[i].direction = Vector2Subtract(GetScreenToWorld2D(GetMousePosition(), playerCam), GunPos); 
 
 					bullets[i].BulletHitbox.x = GunPos.x;
 					bullets[i].BulletHitbox.y = GunPos.y;
@@ -236,14 +236,14 @@ void main() {
 				UpdateTimer(&bullets[i].bullettimer);
 				if (!isTimerDone(&bullets[i].bullettimer) && bullets[i].active == true) {
 
-					bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()));
+					bullets[i].position = Vector2Add(bullets[i].position, Vector2Scale(bullets[i].direction, GetFrameTime()*bulletspeed));
 
 					bullets[i].BulletHitbox.x = bullets[i].position.x;
 					bullets[i].BulletHitbox.y = bullets[i].position.y;
 
 					//checking collision between 1)bullet and 2)enemies
 					for (int j = 0;j < MAX_ENEMIES;j++) {
-						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active == true) {
+						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active==true) {
 							enemies[j].health--;
 							bullets[i].active = false;
 
@@ -373,19 +373,16 @@ void main() {
 			DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
 
 			if (gameOver)
-				DrawText("GAME OVER", 100, 100, 80, BLACK);
+				DrawText("GAME OVER", playerPos.x-220, playerPos.y, 80,WHITE);
 
-			if (collided)
-				DrawText("colision", 50, 50, 42, BLACK);
-			else
-				DrawText("no colision", 50, 50, 42, BLACK);
-			if (!(flashingTimer.Lifetime <= 0.0))
+			
+			if (!(flashingTimer.Lifetime <= 0.0)&&playerHealth!=0)
 				DrawText("INVINCIBLE", playerPos.x-30,playerPos.y,20, WHITE);
 			else
 				DrawText("currently not invincible", 50, 40, 20, BLACK);
 
 			EndDrawing();
-
+			
 		
 	}
 }
