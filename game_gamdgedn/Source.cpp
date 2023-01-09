@@ -99,10 +99,7 @@ void main() {
 	FILE* scores;
 
 	// Loading textures
-	Texture2D bg = LoadTexture("resources/bg2.png");
 	Texture2D bg2 = LoadTexture("resources/bgfinal.png");
-	Texture2D playerTex = LoadTexture("resources/p1r.png");
-	Texture2D enemyTex = LoadTexture("resources/mob.png");
 	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
 	Texture2D enemy2tex = LoadTexture("resources/enemy_1.png");
@@ -162,14 +159,14 @@ void main() {
 	Camera2D playerCam = { 0 };
 
 	playerCam.target = playerPos;
-	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (playerTex.width / 2), (SCREEN_HEIGHT / 2.0f) - (playerTex.height / 2) };
+	playerCam.offset = { (SCREEN_WIDTH / 2.0f), (SCREEN_HEIGHT / 2.0f)};
 	playerCam.rotation = 0.0f;
 	playerCam.zoom = 2.5f;
 
 	char invincibleString[20] = "Invincible";
 
 	// Initiallizing enemies
-	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
+	// 2D array of 2 types of "Enemy(s)"
 	Enemy* enemies[2];
 	for (int i = 0; i < 2; i++)
 	{
@@ -193,7 +190,7 @@ void main() {
 	}
 
 	// intializing bullets
-	// Bullet bullets[MAX_BULLETS] = { 0 };   // An array of "Bullet(s)"
+	// An array of "Bullet(s)"
 	Bullet* bullets = (Bullet*)malloc(MAX_BULLETS * sizeof(Bullet));
 	for (int i = 0; i < MAX_BULLETS; i++) {
 		bullets[i].position = Vector2{ 0,0 };
@@ -209,7 +206,6 @@ void main() {
 
 
 	//initiallizing timers
-
 	Timer flashingTimer;
 	flashingTimer.Lifetime = 0.0f;
 	Timer firerateTimer;
@@ -240,15 +236,12 @@ void main() {
 	}
 	fclose(scores);
 
-	//***********************************************************************************************************************
-	// GAME LOOP**************************************************************************************************************
+	// GAME LOOP
 	while (!WindowShouldClose()) {
 		UpdateMusicStream(backgroundmusic);
 		// Toggling fullscreen mode
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
-
-
 
 		if (!gameOver)
 		{
@@ -258,8 +251,6 @@ void main() {
 
 			playerCam.target = { playerPos.x + 20, playerPos.y + 20 };
 			GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
-
-
 
 			if (isTimerDone(&mcframetimer))
 			{
@@ -286,9 +277,6 @@ void main() {
 
 			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown))
 				playerPos.y += playerSpeed;
-
-
-
 
 			//activate bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
@@ -358,15 +346,12 @@ void main() {
 				}
 			}
 
-
-
 			// Update enemies position to follow player
 			for (int i = 0; i < 2; i++) {
 				for (int j = 0; j < MAX_ENEMIES; j++)
 				{
 					if (enemies[i][j].active) {
 						// Calculate the direction in which to follow player: player position - enemy position
-
 						enemies[i][j].direction = Vector2Subtract(playerPos, enemies[i][j].position);
 
 						//Normalizing the direction 
@@ -410,8 +395,6 @@ void main() {
 				}
 			}
 
-
-
 			UpdateTimer(&flashingTimer);
 			if (collided && isTimerDone(&flashingTimer))
 				collided = false;
@@ -436,14 +419,11 @@ void main() {
 		DrawRectangle(-100, -100, 20, 20, RED);
 
 		ClearBackground(WHITE);
+		
 		//drawing background
 		DrawTexture(bg2, 0, 0, WHITE);
-		;printf("%d\t%d\n", xp, lvl);
-
-		//DrawRectangleRec(PlayerHitbox, BLUE);
 
 		DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
-
 
 		// Drawing active enemies
 		for (int i = 0; i < 2; i++)
@@ -472,23 +452,15 @@ void main() {
 							Rectangle{ (enemyFramewidth - 70 * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy2tex.height }
 						, enemies[i][j].position, WHITE);
 					}
-
-					// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 				}
 			}
 		}
+
 		//draw bullets
 		for (int i = 0; i < MAX_BULLETS; i++) {
-
-			if (!isTimerDone(&bullets[i].bullettimer)) {
-				//DrawCircleV(bullets[i].position, 10, RED);
-					//DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
+			if (!isTimerDone(&bullets[i].bullettimer))
 				DrawTexture(bullet1tex, bullets[i].BulletHitbox.x, bullets[i].BulletHitbox.y, WHITE);
-			}
 		}
-
-
-
 
 		//draw health
 		if (playerHealth >= 1) {
@@ -499,23 +471,23 @@ void main() {
 					DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 380,20 }, playerCam), WHITE);
 			}
 		}
-		//draw hud 
 
+		//draw hud
 		DrawText(TextFormat("xp %d/%d", xp, xpcap), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,190 }, playerCam).y, 20, GREEN);
 		DrawText(TextFormat("lvl %d ", lvl), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,150 }, playerCam).y, 20, GREEN);
 
-
 		if (gameOver) {
-		DrawText("GAME OVER", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("GAME__OVER",60),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y,60, WHITE);
-		DrawText(TextFormat("enemies killed : %d \n high score : %d", currentScore,highScore), GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH/2)-(float)MeasureText("enemies killed 999",20),0}, playerCam).x, GetScreenToWorld2D(Vector2{SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + 100}, playerCam).y, 20, WHITE);
-	}
+			DrawText("GAME OVER", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("GAME__OVER",60),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y,60, WHITE);
+			DrawText(TextFormat("enemies killed : %d \n high score : %d", currentScore,highScore), GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH/2)-(float)MeasureText("enemies killed 999",20),0}, playerCam).x, GetScreenToWorld2D(Vector2{SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + 100}, playerCam).y, 20, WHITE);
+		}
 
-	if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
-		DrawText(TextFormat("%s", invincibleString), playerPos.x + 10, playerPos.y, 10, WHITE);
+		if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
+			DrawText(TextFormat("%s", invincibleString), playerPos.x + 10, playerPos.y, 10, WHITE);
 	
 
-	EndDrawing();
+		EndDrawing();
 
 	}
+
 	CloseAudioDevice();
 }
