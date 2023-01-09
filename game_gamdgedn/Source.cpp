@@ -9,6 +9,7 @@
 #include <raylib.h>
 #include<stdlib.h>
 #include <raymath.h>
+#include <stdio.h>
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
