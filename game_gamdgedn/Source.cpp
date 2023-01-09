@@ -104,7 +104,7 @@ void main() {
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
 	Texture2D enemy2tex = LoadTexture("resources/enemy_1.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
-	Texture2D heart = LoadTexture("resources/heart5.png");
+	Texture2D heart = LoadTexture("resources/HEART5.png");
 	
 	//loading audio
 	SetMasterVolume(0.75f);
@@ -142,7 +142,8 @@ void main() {
 	int xp=0;
 	int xpcap = 10;
 	int lvl = 1;
-
+	float gametimer = 0;
+	int gametimermin =0;
 	// enemy timer (old timer system)
 	int enemyTimer = 0;
 	float enemySpawnRate = 0.45f;
@@ -419,7 +420,7 @@ void main() {
 		DrawRectangle(-100, -100, 20, 20, RED);
 
 		ClearBackground(WHITE);
-		
+
 		//drawing background
 		DrawTexture(bg2, 0, 0, WHITE);
 
@@ -466,19 +467,20 @@ void main() {
 		if (playerHealth >= 1) {
 			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 0,20 }, playerCam), WHITE);
 			if (playerHealth >= 2) {
-				DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 190,20 }, playerCam), WHITE);
+				DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 150,20 }, playerCam), WHITE);
 				if (playerHealth == 3)
-					DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 380,20 }, playerCam), WHITE);
+					DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 300,20 }, playerCam), WHITE);
 			}
 		}
-
-		//draw hud
+		
+		
+		//draw HUD
 		DrawText(TextFormat("xp %d/%d", xp, xpcap), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,190 }, playerCam).y, 20, GREEN);
 		DrawText(TextFormat("lvl %d ", lvl), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,150 }, playerCam).y, 20, GREEN);
-
+		
 		if (gameOver) {
 			DrawText("GAME OVER", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("GAME__OVER",60),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y,60, WHITE);
-			DrawText(TextFormat("enemies killed : %d \n high score : %d", currentScore,highScore), GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH/2)-(float)MeasureText("enemies killed 999",20),0}, playerCam).x, GetScreenToWorld2D(Vector2{SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + 100}, playerCam).y, 20, WHITE);
+			DrawText(TextFormat("enemies killed : %d \n high score : %d ", currentScore,highScore), GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH/2)-(float)MeasureText("enemies killed 999",20),0}, playerCam).x, GetScreenToWorld2D(Vector2{SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + 100}, playerCam).y, 20, WHITE);
 		}
 
 		if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
