@@ -100,12 +100,13 @@ void main() {
 
 	// Loading textures
 	Texture2D bg = LoadTexture("resources/bg2.png");
-	Texture2D bg2 = LoadTexture("resources/bg7.png");
+	Texture2D bg2 = LoadTexture("resources/bgfinal.png");
 	Texture2D playerTex = LoadTexture("resources/p1r.png");
 	Texture2D enemyTex = LoadTexture("resources/mob.png");
 	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
+	Texture2D heart = LoadTexture("resources/heart5.png");
 
 	//loading audio
 	SetMasterVolume(0.75f);
@@ -116,8 +117,10 @@ void main() {
 	SetSoundVolume(enemyhurt, 0.3f);
 	Sound playerhurt = LoadSound("resources/playerhurt.mp3");
 		SetSoundVolume(playerhurt, 1.0f);
-	Music backgroundmusic = LoadMusicStream("resources/TamallyMakk.mp3");
-	SetMusicVolume(backgroundmusic, 1.0f);
+	Music backgroundmusic = LoadMusicStream("resources/TamallyMaak.mp3");
+	//SetMusicVolume(backgroundmusic, 1.0f);
+	//PlayMusicStream(backgroundmusic);
+	// 
 	// Vectors
 	Vector2 playerPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 	Vector2 GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
@@ -150,7 +153,7 @@ void main() {
 	playerCam.target = playerPos;
 	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (playerTex.width / 2), (SCREEN_HEIGHT / 2.0f) - (playerTex.height / 2) };
 	playerCam.rotation = 0.0f;
-	playerCam.zoom = 2.5f;
+	playerCam.zoom = 3.0f;
 
 	// Initiallizing enemies
 	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
@@ -224,10 +227,12 @@ void main() {
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
 
+		
+
 		if (!gameOver)
 		{
 		
-			UpdateMusicStream(backgroundmusic);
+			
 			//update playerhitbox pos
 			PlayerHitbox.x = playerPos.x + 20;
 			PlayerHitbox.y = playerPos.y + 5;
@@ -429,9 +434,18 @@ void main() {
 	}
 
 
-	//other drawings
-	DrawText(TextFormat("Player's Health: %d", playerHealth), 10, 10, 30, RED);
 
+	
+	//draw health
+	if (playerHealth >=1) {
+		DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 0,20 }, playerCam), WHITE);
+		if (playerHealth >=2) {
+			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 190,20 }, playerCam), WHITE);
+			if(playerHealth==3)
+			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 380,20 }, playerCam), WHITE);
+		}
+	}
+	//other drawings
 	if (gameOver)
 		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 80, WHITE);
 
