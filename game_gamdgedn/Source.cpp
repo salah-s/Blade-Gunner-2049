@@ -14,7 +14,7 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define MAX_ENEMIES 100
-#define MAX_BULLETS 50
+#define MAX_BULLETS 80
 
 // A function that generates a random number between a min dist from the player and a max dist from the player
 float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
@@ -98,7 +98,7 @@ struct Bullet {
 void main() {
 
 	// Initializing window
-	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "game title");
+	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Blade Gunner 2049");
 	SetTargetFPS(60);
 
 	//audio
