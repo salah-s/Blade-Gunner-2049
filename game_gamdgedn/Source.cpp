@@ -105,6 +105,7 @@ void main() {
 	Texture2D enemyTex = LoadTexture("resources/mob.png");
 	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
+	Texture2D enemy2tex = LoadTexture("resources/enemy_1.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 	Texture2D heart = LoadTexture("resources/heart5.png");
 
@@ -158,18 +159,26 @@ void main() {
 
 	// Initiallizing enemies
 	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
-	Enemy* enemies = (Enemy*)malloc(MAX_ENEMIES * sizeof(Enemy));
-
-	for (int i = 0; i < MAX_ENEMIES; i++)
+	Enemy* enemies[2];
+	for (int i = 0; i < 2; i++)
 	{
-		enemies[i].position = { Vector2{0,0} };
-		enemies[i].active = false;
-		enemies[i].EnemyHitbox.width = 26;
-		enemies[i].EnemyHitbox.height = 26;
-		enemies[i].enemySpeed = 2;
-		enemies[i].health = 2;
-		enemies[i].enemyFrametimer = 0.0f;
-		enemies[i].enemyframe = 0;
+		enemies[i] = (Enemy*)malloc(MAX_ENEMIES * sizeof(Enemy));
+	}
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < MAX_ENEMIES; j++)
+		{
+
+			enemies[i][j].position = {Vector2{0,0}};
+			enemies[i][j].active = false;
+			enemies[i][j].EnemyHitbox.width = 26;
+			enemies[i][j].EnemyHitbox.height = 26;
+			enemies[i][j].enemySpeed = 2;
+			enemies[i][j].health = 2;
+			enemies[i][j].enemyFrametimer = 0.0f;
+			enemies[i][j].enemyframe = 0;
+		}
 	}
 
 	// intializing bullets
@@ -304,9 +313,9 @@ void main() {
 
 					//checking collision between 1)bullet and 2)enemies
 					for (int j = 0; j < MAX_ENEMIES; j++) {
-						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active == true) {
+						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[i][j].EnemyHitbox) && enemies[i][j].active == true && bullets[i].active == true) {
 						
-							enemies[j].health--;
+							enemies[i][j].health--;
 							bullets[i].active = false;
 
 							//throwing the bullet away so it disapears (not necessary for the hitbox but necessary for the texture)
@@ -321,52 +330,59 @@ void main() {
 			// Activating enemies and giving them positions
 			enemyTimer++; // Number of frames
 
-			for (int i = 0; i < MAX_ENEMIES; i++) {
-				if (!enemies[i].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
+			for (int i = 0; i < 2; i++)
+			{
+				for (int j = 0; j < MAX_ENEMIES; j++) {
+					if (!enemies[i][j].active && (enemyTimer % (int)(60 / enemySpawnRate)) == 0) {
 
-					enemies[i].active = true;
-					enemies[i].position.x = GetRandomSafeValue(playerPos.x, 200, 300);
-					enemies[i].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
-					enemies[i].EnemyHitbox.x = enemies[i].position.x;
-					enemies[i].EnemyHitbox.y = enemies[i].position.y;
-					enemies[i].health = 2;
-					break;
+						enemies[i][j].active = true;
+						enemies[i][j].position.x = GetRandomSafeValue(playerPos.x, 200, 300);
+						enemies[i][j].position.y = GetRandomSafeValue(playerPos.y, 200, 300);
+						enemies[i][j].EnemyHitbox.x = enemies[i][j].position.x;
+						enemies[i][j].EnemyHitbox.y = enemies[i][j].position.y;
+						enemies[i][j].health = 2;
+						break;
+					}
 				}
 			}
+			
 
 
 			// Update enemies position to follow player
-			for (int i = 0; i < MAX_ENEMIES; i++) {
-				if (enemies[i].active) {
-					// Calculate the direction in which to follow player: player position - enemy position
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < MAX_ENEMIES; j++)
+				{
+					if (enemies[i][j].active) {
+						// Calculate the direction in which to follow player: player position - enemy position
 
-					enemies[i].direction = Vector2Subtract(playerPos, enemies[i].position);
+						enemies[i][j].direction = Vector2Subtract(playerPos, enemies[i][j].position);
 
-					//Normalizing the direction 
-					enemies[i].hyp = sqrt(enemies[i].direction.x * enemies[i].direction.x + enemies[i].direction.y * enemies[i].direction.y);
-					if (enemies[i].hyp != 0) {
-						enemies[i].direction.x /= enemies[i].hyp;
-						enemies[i].direction.y /= enemies[i].hyp;
-					}
-					// Update the enemy's position (movement)
-					enemies[i].position.x += enemies[i].direction.x * 1;
-					enemies[i].position.y += enemies[i].direction.y * 1;
+						//Normalizing the direction 
+						enemies[i][j].hyp = sqrt(enemies[i][j].direction.x * enemies[i][j].direction.x + enemies[i][j].direction.y * enemies[i][j].direction.y);
+						if (enemies[i][j].hyp != 0) {
+							enemies[i][j].direction.x /= enemies[i][j].hyp;
+							enemies[i][j].direction.y /= enemies[i][j].hyp;
+						}
+						// Update the enemy's position (movement)
+						enemies[i][j].position.x += enemies[i][j].direction.x * 1;
+						enemies[i][j].position.y += enemies[i][j].direction.y * 1;
 
-					enemies[i].EnemyHitbox.x = enemies[i].position.x + 15;
-					enemies[i].EnemyHitbox.y = enemies[i].position.y + 10;
+						enemies[i][j].EnemyHitbox.x = enemies[i][j].position.x + 15;
+						enemies[i][j].EnemyHitbox.y = enemies[i][j].position.y + 10;
 
-					// Check collision between enemy and player 
-					if (CheckCollisionRecs(PlayerHitbox, enemies[i].EnemyHitbox) && isTimerDone(&flashingTimer) && playerHealth > 0)
-					{
-						collided = true;
-						playerHealth--;
-						PlaySound(playerhurt);
-						StartTimer(&flashingTimer, flashingDuration);
-					}
+						// Check collision between enemy and player 
+						if (CheckCollisionRecs(PlayerHitbox, enemies[i][j].EnemyHitbox) && isTimerDone(&flashingTimer) && playerHealth > 0)
+						{
+							collided = true;
+							playerHealth--;
+							PlaySound(playerhurt);
+							StartTimer(&flashingTimer, flashingDuration);
+						}
 
-					if (enemies[i].health == 0) {//enemy's death condition
-						PlaySound(enemyhurt);
-						enemies[i].active = false;
+						if (enemies[i][j].health == 0) {//enemy's death condition
+							PlaySound(enemyhurt);
+							enemies[i][j].active = false;
+						}
 					}
 				}
 			}
@@ -405,23 +421,34 @@ void main() {
 
 
 	// Drawing active enemies
-	for (int i = 0; i < MAX_ENEMIES; i++)
+	for (int i = GetRandomValue(0, 1); i < 2; i++)
 	{
-		if (enemies[i].active) {
+		for (int j = 0; j < MAX_ENEMIES; j++)
+		{
+			if (enemies[i][j].active) {
 
-			//drawing enemy animation
-			enemies[i].enemyFrametimer += GetFrameTime();
-			if (enemies[i].enemyFrametimer >= 0.3f) {
-				enemies[i].enemyFrametimer = 0;
-				enemies[i].enemyframe++;
+				//drawing enemy animation
+				enemies[i][j].enemyFrametimer += GetFrameTime();
+				if (enemies[i][j].enemyFrametimer >= 0.3f) {
+					enemies[i][j].enemyFrametimer = 0;
+					enemies[i][j].enemyframe++;
+				}
+				enemies[i][j].enemyframe = enemies[i][j].enemyframe % enemyMaxFrame;
+
+				if (i == 0)
+				{
+					DrawTextureRec(enemy1tex,
+						Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
+					, enemies[i][j].position, WHITE);
+				} else if(i == 1)
+				{
+					DrawTextureRec(enemy2tex,
+						Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
+					, enemies[i][j].position, WHITE);
+				}
+
+				// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 			}
-			enemies[i].enemyframe = enemies[i].enemyframe % enemyMaxFrame;
-
-			DrawTextureRec(enemy1tex,
-				Rectangle{ (enemyFramewidth * enemies[i].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
-			, enemies[i].position, WHITE);
-
-			// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 		}
 	}
 	//draw bullets
