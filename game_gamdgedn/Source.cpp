@@ -117,9 +117,10 @@ void main() {
 	SetSoundVolume(enemyhurt, 0.3f);
 	Sound playerhurt = LoadSound("resources/playerhurt.mp3");
 		SetSoundVolume(playerhurt, 1.0f);
-	Music backgroundmusic = LoadMusicStream("resources/TamallyMaak.mp3");
-	//SetMusicVolume(backgroundmusic, 1.0f);
-	//PlayMusicStream(backgroundmusic);
+	Music backgroundmusic = LoadMusicStream("resources/musicc.mp3");
+	PlayMusicStream(backgroundmusic);
+	SetMusicVolume(backgroundmusic, 0.2f);
+	
 	// 
 	// Vectors
 	Vector2 playerPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
@@ -222,7 +223,7 @@ void main() {
 	//***********************************************************************************************************************
 	// GAME LOOP**************************************************************************************************************
 	while (!WindowShouldClose()) {
-
+		UpdateMusicStream(backgroundmusic);
 		// Toggling fullscreen mode
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
