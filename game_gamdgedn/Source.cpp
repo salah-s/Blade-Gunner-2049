@@ -3,10 +3,10 @@
 #include<stdlib.h>
 #include <raymath.h>
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
 #define MAX_ENEMIES 100
-#define MAX_BULLETS 30
+#define MAX_BULLETS 50
 
 // A function that generates a random number between a min dist from the player and a max dist from the player
 float GetRandomSafeValue(float playerPos, float minDist, float maxDist) {
@@ -111,7 +111,7 @@ void main() {
 	
 	//loading audio
 	SetMasterVolume(0.75f);
-
+	Sound lvlupsound = LoadSound("resources/lvlup.wav");
 	Sound shootingsound = LoadSound("resources/shoot.wav");
 	SetSoundVolume(shootingsound, 0.3f);
 	Sound enemyhurt = LoadSound("resources/enemyhurt.ogg");
@@ -142,12 +142,15 @@ void main() {
 	int playerSpeed = 3;
 	int playerHealth = 3;
 	int bulletspeed = 5;
+	int xp=0;
+	int xpcap = 10;
+	int lvl = 1;
 
 	// enemy timer (old timer system)
 	int enemyTimer = 0;
-	float enemySpawnRate = 1.0f;
+	float enemySpawnRate = 0.5;
 
-	int currentScore = 200;
+	int currentScore = 0;
 	int highScore = 0;
 
 	float flashingDuration = 2.0f;
@@ -161,7 +164,7 @@ void main() {
 	playerCam.target = playerPos;
 	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (playerTex.width / 2), (SCREEN_HEIGHT / 2.0f) - (playerTex.height / 2) };
 	playerCam.rotation = 0.0f;
-	playerCam.zoom = 3.5f;
+	playerCam.zoom = 2.5f;
 
 	// Initiallizing enemies
 	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
@@ -209,7 +212,7 @@ void main() {
 	flashingTimer.Lifetime = 0.0f;
 	Timer firerateTimer;
 	firerateTimer.Lifetime = 0.0f;
-	float firerate = 0.4;
+	float firerate = 0.5;
 
 	//animation related variables
 	float mcFramewidth = (float)(mcTex.width / 5); //player animation
@@ -282,6 +285,7 @@ void main() {
 			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown))
 				playerPos.y += playerSpeed;
 
+			
 
 
 			//activate bullets
@@ -387,11 +391,22 @@ void main() {
 
 						if (enemies[i][j].health == 0) {//enemy's death condition
 							PlaySound(enemyhurt);
+							xp++;
+							currentScore++;
 							enemies[i][j].active = false;
+							//xp and level system
+							if (xp % xpcap==0) {
+								PlaySound(lvlupsound);
+								lvl++;
+								firerate = firerate*0.9f;
+								enemySpawnRate = enemySpawnRate*1.1f;
+							}
 						}
 					}
 				}
 			}
+			
+
 
 			UpdateTimer(&flashingTimer);
 			if (collided && isTimerDone(&flashingTimer))
@@ -419,7 +434,7 @@ void main() {
 	ClearBackground(WHITE);
 	//drawing background
 	DrawTexture(bg2, 0, 0, WHITE);
-	;
+	;printf("%d\t%d\n", xp, lvl);
 
 		//DrawRectangleRec(PlayerHitbox, BLUE);
 
@@ -467,7 +482,7 @@ void main() {
 		}
 	}
 
-
+	
 
 	
 	//draw health
@@ -482,13 +497,12 @@ void main() {
 	
 
 	if (gameOver)
-		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 80, WHITE);
+		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 50, WHITE);
 
 
 	if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
-		DrawText("INVINCIBLE", playerPos.x - 30, playerPos.y, 20, WHITE);
-	else
-		DrawText("currently not invincible", 50, 40, 20, BLACK);
+		DrawText("INVINCIBLE", playerPos.x - 30, playerPos.y, 10, WHITE);
+	
 
 	EndDrawing();
 
