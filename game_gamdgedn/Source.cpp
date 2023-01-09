@@ -108,7 +108,7 @@ void main() {
 	Texture2D enemy2tex = LoadTexture("resources/zombie.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 	Texture2D heart = LoadTexture("resources/heart5.png");
-
+	
 	//loading audio
 	SetMasterVolume(0.75f);
 
@@ -247,7 +247,6 @@ void main() {
 
 		if (!gameOver)
 		{
-		
 			//update playerhitbox pos
 			PlayerHitbox.x = playerPos.x + 20;
 			PlayerHitbox.y = playerPos.y + 5;
@@ -420,15 +419,15 @@ void main() {
 	ClearBackground(WHITE);
 	//drawing background
 	DrawTexture(bg2, 0, 0, WHITE);
-	//DrawTexture(bg, 0, 0, WHITE);
+	;
 
 		//DrawRectangleRec(PlayerHitbox, BLUE);
 
 	DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
-
+	
 
 	// Drawing active enemies
-	for (int i = GetRandomValue(0, 1); i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < MAX_ENEMIES; j++)
 		{
@@ -482,13 +481,6 @@ void main() {
 	}
 	
 
-
-	//drawing borders
-	//DrawRectangleRec(borderup,RED);               //up
-	//DrawRectangleRec(borderdown,RED);                //down
-	//DrawRectangleRec(borderleft,BLUE);                //left  
-	//DrawRectangleRec(borderright,BLUE);                //right
-	//other drawings
 	if (gameOver)
 		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 80, WHITE);
 
