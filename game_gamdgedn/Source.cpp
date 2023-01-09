@@ -1,5 +1,12 @@
+
+/* 
+	This game was developed by:
+		Salah Mohamed Salah 211004521 
+		Kerolos Amir Sobhy, 
+		Omar Khaled Fouad 211014620
+*/
+
 #include <raylib.h>
-#include <stdio.h>
 #include<stdlib.h>
 #include <raymath.h>
 
