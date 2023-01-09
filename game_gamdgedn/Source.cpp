@@ -105,7 +105,7 @@ void main() {
 	Texture2D enemyTex = LoadTexture("resources/mob.png");
 	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
-	Texture2D enemy2tex = LoadTexture("resources/zombie.png");
+	Texture2D enemy2tex = LoadTexture("resources/enemy_1.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 	Texture2D heart = LoadTexture("resources/heart5.png");
 	
@@ -444,12 +444,12 @@ void main() {
 				if (i == 0)
 				{
 					DrawTextureRec(enemy1tex,
-						Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
+						Rectangle{ (enemyFramewidth  * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
 					, enemies[i][j].position, WHITE);
 				} else if(i == 1)
 				{
 					DrawTextureRec(enemy2tex,
-						Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy2tex.height }
+						Rectangle{ (enemyFramewidth-70 * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy2tex.height }
 					, enemies[i][j].position, WHITE);
 				}
 
