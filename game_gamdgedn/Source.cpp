@@ -131,6 +131,12 @@ void main() {
 	Rectangle PlayerHitbox = { 00,00,20,45 };
 	Rectangle PlayerAnimationRec;
 	Rectangle EnemyAnimationRec;
+
+	Rectangle borderup = { 200,100,1400,100 }; //borders
+	Rectangle borderdown = { 300,825,1400,100 };
+	Rectangle borderleft = { 290,200,100,800 };
+	Rectangle borderright = { 1510,200,100,800 };
+	
 	// Variables
 	int playerSpeed = 3;
 	int playerHealth = 3;
@@ -154,7 +160,7 @@ void main() {
 	playerCam.target = playerPos;
 	playerCam.offset = { (SCREEN_WIDTH / 2.0f) - (playerTex.width / 2), (SCREEN_HEIGHT / 2.0f) - (playerTex.height / 2) };
 	playerCam.rotation = 0.0f;
-	playerCam.zoom = 3.0f;
+	playerCam.zoom = 3.5f;
 
 	// Initiallizing enemies
 	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
@@ -233,7 +239,6 @@ void main() {
 		if (!gameOver)
 		{
 		
-			
 			//update playerhitbox pos
 			PlayerHitbox.x = playerPos.x + 20;
 			PlayerHitbox.y = playerPos.y + 5;
@@ -253,21 +258,20 @@ void main() {
 			UpdateTimer(&mcframetimer);
 
 			// Player movement
-			if (IsKeyDown(KEY_D)) {
+			if (IsKeyDown(KEY_D)&& !CheckCollisionRecs(PlayerHitbox,borderright) ) {
 				playerPos.x += playerSpeed;
 				PlayerAnimationRec.width = mcFramewidth;
 			}
 
-			if (IsKeyDown(KEY_A)) {
+			if (IsKeyDown(KEY_A) && !CheckCollisionRecs(PlayerHitbox, borderleft)) {
 				playerPos.x -= playerSpeed;
 				PlayerAnimationRec.width = -(mcFramewidth);
-
 			}
 
-			if (IsKeyDown(KEY_W))
+			if (IsKeyDown(KEY_W) && !CheckCollisionRecs(PlayerHitbox,borderup))
 				playerPos.y -= playerSpeed;
 
-			if (IsKeyDown(KEY_S))
+			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown))
 				playerPos.y += playerSpeed;
 
 
@@ -446,6 +450,14 @@ void main() {
 			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 380,20 }, playerCam), WHITE);
 		}
 	}
+	
+
+
+	//drawing borders
+	//DrawRectangleRec(borderup,RED);               //up
+	//DrawRectangleRec(borderdown,RED);                //down
+	//DrawRectangleRec(borderleft,BLUE);                //left  
+	//DrawRectangleRec(borderright,BLUE);                //right
 	//other drawings
 	if (gameOver)
 		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 80, WHITE);
