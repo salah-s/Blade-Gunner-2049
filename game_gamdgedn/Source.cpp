@@ -139,7 +139,7 @@ void main() {
 	Rectangle borderright = { 1510,200,100,800 };
 	
 	// Variables
-	int playerSpeed = 3;
+	float playerSpeed = 2.6;
 	int playerHealth = 3;
 	int bulletspeed = 5;
 	int xp=0;
@@ -148,7 +148,7 @@ void main() {
 
 	// enemy timer (old timer system)
 	int enemyTimer = 0;
-	float enemySpawnRate = 0.5;
+	float enemySpawnRate = 0.45f;
 
 	int currentScore = 0;
 	int highScore = 0;
@@ -246,7 +246,7 @@ void main() {
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
 
-		
+
 
 		if (!gameOver)
 		{
@@ -269,7 +269,7 @@ void main() {
 			UpdateTimer(&mcframetimer);
 
 			// Player movement
-			if (IsKeyDown(KEY_D)&& !CheckCollisionRecs(PlayerHitbox,borderright) ) {
+			if (IsKeyDown(KEY_D) && !CheckCollisionRecs(PlayerHitbox, borderright)) {
 				playerPos.x += playerSpeed;
 				PlayerAnimationRec.width = mcFramewidth;
 			}
@@ -279,13 +279,13 @@ void main() {
 				PlayerAnimationRec.width = -(mcFramewidth);
 			}
 
-			if (IsKeyDown(KEY_W) && !CheckCollisionRecs(PlayerHitbox,borderup))
+			if (IsKeyDown(KEY_W) && !CheckCollisionRecs(PlayerHitbox, borderup))
 				playerPos.y -= playerSpeed;
 
 			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown))
 				playerPos.y += playerSpeed;
 
-			
+
 
 
 			//activate bullets
@@ -323,7 +323,7 @@ void main() {
 					{
 						for (int k = 0; k < MAX_ENEMIES; k++) {
 							if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j][k].EnemyHitbox) && enemies[j][k].active == true && bullets[i].active == true) {
-						
+
 								enemies[j][k].health--;
 								bullets[i].active = false;
 
@@ -355,7 +355,7 @@ void main() {
 					}
 				}
 			}
-			
+
 
 
 			// Update enemies position to follow player
@@ -395,17 +395,19 @@ void main() {
 							currentScore++;
 							enemies[i][j].active = false;
 							//xp and level system
-							if (xp % xpcap==0) {
+							if (xp == 10) {
+								xp = 0;
 								PlaySound(lvlupsound);
 								lvl++;
-								firerate = firerate*0.9f;
-								enemySpawnRate = enemySpawnRate*1.1f;
+								firerate = firerate * 0.9f;
+								enemySpawnRate = enemySpawnRate * 1.1f;
+								xpcap *= 1.1;
 							}
 						}
 					}
 				}
 			}
-			
+
 
 
 			UpdateTimer(&flashingTimer);
@@ -422,83 +424,89 @@ void main() {
 			highScore = currentScore;
 			fprintf(scores, "%d", highScore);
 		}
-	
-	fclose(scores);
 
-	// DRAWING
-	BeginDrawing();
-	BeginMode2D(playerCam); // Showing camera
+		fclose(scores);
 
-	DrawRectangle(-100, -100, 20, 20, RED);
+		// DRAWING
+		BeginDrawing();
+		BeginMode2D(playerCam); // Showing camera
 
-	ClearBackground(WHITE);
-	//drawing background
-	DrawTexture(bg2, 0, 0, WHITE);
-	;printf("%d\t%d\n", xp, lvl);
+		DrawRectangle(-100, -100, 20, 20, RED);
+
+		ClearBackground(WHITE);
+		//drawing background
+		DrawTexture(bg2, 0, 0, WHITE);
+		;printf("%d\t%d\n", xp, lvl);
 
 		//DrawRectangleRec(PlayerHitbox, BLUE);
 
-	DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
-	
+		DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
 
-	// Drawing active enemies
-	for (int i = 0; i < 2; i++)
-	{
-		for (int j = 0; j < MAX_ENEMIES; j++)
+
+		// Drawing active enemies
+		for (int i = 0; i < 2; i++)
 		{
-			if (enemies[i][j].active) {
+			for (int j = 0; j < MAX_ENEMIES; j++)
+			{
+				if (enemies[i][j].active) {
 
-				//drawing enemy animation
-				enemies[i][j].enemyFrametimer += GetFrameTime();
-				if (enemies[i][j].enemyFrametimer >= 0.3f) {
-					enemies[i][j].enemyFrametimer = 0;
-					enemies[i][j].enemyframe++;
+					//drawing enemy animation
+					enemies[i][j].enemyFrametimer += GetFrameTime();
+					if (enemies[i][j].enemyFrametimer >= 0.3f) {
+						enemies[i][j].enemyFrametimer = 0;
+						enemies[i][j].enemyframe++;
+					}
+					enemies[i][j].enemyframe = enemies[i][j].enemyframe % enemyMaxFrame;
+
+					if (i == 0)
+					{
+						DrawTextureRec(enemy1tex,
+							Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
+						, enemies[i][j].position, WHITE);
+					}
+					else if (i == 1)
+					{
+						DrawTextureRec(enemy2tex,
+							Rectangle{ (enemyFramewidth - 70 * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy2tex.height }
+						, enemies[i][j].position, WHITE);
+					}
+
+					// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 				}
-				enemies[i][j].enemyframe = enemies[i][j].enemyframe % enemyMaxFrame;
-
-				if (i == 0)
-				{
-					DrawTextureRec(enemy1tex,
-						Rectangle{ (enemyFramewidth  * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
-					, enemies[i][j].position, WHITE);
-				} else if(i == 1)
-				{
-					DrawTextureRec(enemy2tex,
-						Rectangle{ (enemyFramewidth-70 * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy2tex.height }
-					, enemies[i][j].position, WHITE);
-				}
-
-				// sssssssDrawRectangleRec(enemies[i].EnemyHitbox, RED);
 			}
 		}
-	}
-	//draw bullets
-	for (int i = 0; i < MAX_BULLETS; i++) {
+		//draw bullets
+		for (int i = 0; i < MAX_BULLETS; i++) {
 
-		if (!isTimerDone(&bullets[i].bullettimer)) {
-			//DrawCircleV(bullets[i].position, 10, RED);
-				//DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
-			DrawTexture(bullet1tex, bullets[i].BulletHitbox.x, bullets[i].BulletHitbox.y, WHITE);
+			if (!isTimerDone(&bullets[i].bullettimer)) {
+				//DrawCircleV(bullets[i].position, 10, RED);
+					//DrawRectangleRec(bullets[i].BulletHitbox,GREEN);
+				DrawTexture(bullet1tex, bullets[i].BulletHitbox.x, bullets[i].BulletHitbox.y, WHITE);
+			}
 		}
-	}
 
-	
 
-	
-	//draw health
-	if (playerHealth >=1) {
-		DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 0,20 }, playerCam), WHITE);
-		if (playerHealth >=2) {
-			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 190,20 }, playerCam), WHITE);
-			if(playerHealth==3)
-			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 380,20 }, playerCam), WHITE);
+
+
+		//draw health
+		if (playerHealth >= 1) {
+			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 0,20 }, playerCam), WHITE);
+			if (playerHealth >= 2) {
+				DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 190,20 }, playerCam), WHITE);
+				if (playerHealth == 3)
+					DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 380,20 }, playerCam), WHITE);
+			}
 		}
+		//draw hud 
+
+		DrawText(TextFormat("xp %d/%d", xp, xpcap), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,190 }, playerCam).y, 20, GREEN);
+		DrawText(TextFormat("lvl %d ", lvl), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,150 }, playerCam).y, 20, GREEN);
+
+
+		if (gameOver) {
+		DrawText("GAME OVER", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("GAME__OVER",60),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y,60, WHITE);
+		DrawText(TextFormat("enemies killed : %d \n high score : %d", currentScore,highScore), GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH/2)-(float)MeasureText("enemies killed 999",20),0}, playerCam).x, GetScreenToWorld2D(Vector2{SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + 100}, playerCam).y, 20, WHITE);
 	}
-	
-
-	if (gameOver)
-		DrawText("GAME OVER", playerPos.x - 220, playerPos.y, 50, WHITE);
-
 
 	if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
 		DrawText("INVINCIBLE", playerPos.x - 30, playerPos.y, 10, WHITE);
