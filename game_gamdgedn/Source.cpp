@@ -166,6 +166,8 @@ void main() {
 	playerCam.rotation = 0.0f;
 	playerCam.zoom = 2.5f;
 
+	char invincibleString[20] = "Invincible";
+
 	// Initiallizing enemies
 	//Enemy enemies[MAX_ENEMIES] = { 0 };     // An array of "Enemy(s)"
 	Enemy* enemies[2];
@@ -509,7 +511,7 @@ void main() {
 	}
 
 	if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
-		DrawText("INVINCIBLE", playerPos.x - 30, playerPos.y, 10, WHITE);
+		DrawText(TextFormat("%s", invincibleString), playerPos.x + 10, playerPos.y, 10, WHITE);
 	
 
 	EndDrawing();
