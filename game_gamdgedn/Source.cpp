@@ -2,7 +2,7 @@
 /* 
 	This game was developed by:
 		Salah Mohamed Salah 211004521 
-		Kerolos Amir Sobhy, 
+		Kerolos Amir Sobhy 211004810
 		Omar Khaled Fouad 211014620
 */
 
