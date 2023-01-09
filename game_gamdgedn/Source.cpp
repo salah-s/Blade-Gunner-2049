@@ -85,12 +85,17 @@ struct Bullet {
 
 };
 
+
+
 void main() {
 
 	// Initializing window
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "game title");
 	SetTargetFPS(60);
 
+	//audio
+	InitAudioDevice();
+	
 	FILE* scores;
 
 	// Loading textures
@@ -102,6 +107,17 @@ void main() {
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 
+	//loading audio
+	SetMasterVolume(0.75f);
+
+	Sound shootingsound = LoadSound("resources/shoot.wav");
+	SetSoundVolume(shootingsound, 0.3f);
+	Sound enemyhurt = LoadSound("resources/enemyhurt.ogg");
+	SetSoundVolume(enemyhurt, 0.3f);
+	Sound playerhurt = LoadSound("resources/playerhurt.mp3");
+		SetSoundVolume(playerhurt, 1.0f);
+	Music backgroundmusic = LoadMusicStream("resources/TamallyMakk.mp3");
+	SetMusicVolume(backgroundmusic, 1.0f);
 	// Vectors
 	Vector2 playerPos = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
 	Vector2 GunPos = Vector2Add(playerPos, Vector2{ 20,20 });
@@ -210,8 +226,8 @@ void main() {
 
 		if (!gameOver)
 		{
-
-
+		
+			UpdateMusicStream(backgroundmusic);
 			//update playerhitbox pos
 			PlayerHitbox.x = playerPos.x + 20;
 			PlayerHitbox.y = playerPos.y + 5;
@@ -254,6 +270,7 @@ void main() {
 			for (int i = 0; i < MAX_BULLETS; i++) {
 				if (isTimerDone(&bullets[i].bullettimer) && IsMouseButtonDown(MOUSE_BUTTON_LEFT) && isTimerDone(&firerateTimer)) {
 					bullets[i].active = true;
+					PlaySound(shootingsound);
 
 					bullets[i].position = GunPos;
 					bullets[i].direction = Vector2Subtract(GetScreenToWorld2D(GetMousePosition(), playerCam), GunPos);
@@ -282,6 +299,7 @@ void main() {
 					//checking collision between 1)bullet and 2)enemies
 					for (int j = 0; j < MAX_ENEMIES; j++) {
 						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j].EnemyHitbox) && enemies[j].active == true && bullets[i].active == true) {
+						
 							enemies[j].health--;
 							bullets[i].active = false;
 
@@ -336,13 +354,14 @@ void main() {
 					{
 						collided = true;
 						playerHealth--;
-
+						PlaySound(playerhurt);
 						StartTimer(&flashingTimer, flashingDuration);
 					}
 
-					if (enemies[i].health == 0) //enemy's death condition
+					if (enemies[i].health == 0) {//enemy's death condition
+						PlaySound(enemyhurt);
 						enemies[i].active = false;
-
+					}
 				}
 			}
 
@@ -425,4 +444,5 @@ void main() {
 	EndDrawing();
 
 	}
+	CloseAudioDevice();
 }
