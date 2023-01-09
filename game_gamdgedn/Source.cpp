@@ -105,7 +105,7 @@ void main() {
 	Texture2D enemyTex = LoadTexture("resources/mob.png");
 	Texture2D mcTex = LoadTexture("resources/mc_walk_with_gun.png");
 	Texture2D enemy1tex = LoadTexture("resources/enemy_2.png");
-	Texture2D enemy2tex = LoadTexture("resources/enemy_1.png");
+	Texture2D enemy2tex = LoadTexture("resources/zombie.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 	Texture2D heart = LoadTexture("resources/heart5.png");
 
@@ -316,16 +316,19 @@ void main() {
 					bullets[i].BulletHitbox.y = bullets[i].position.y;
 
 					//checking collision between 1)bullet and 2)enemies
-					for (int j = 0; j < MAX_ENEMIES; j++) {
-						if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[i][j].EnemyHitbox) && enemies[i][j].active == true && bullets[i].active == true) {
+					for (int j = 0; j < 2; j++)
+					{
+						for (int k = 0; k < MAX_ENEMIES; k++) {
+							if (CheckCollisionRecs(bullets[i].BulletHitbox, enemies[j][k].EnemyHitbox) && enemies[j][k].active == true && bullets[i].active == true) {
 						
-							enemies[i][j].health--;
-							bullets[i].active = false;
+								enemies[j][k].health--;
+								bullets[i].active = false;
 
-							//throwing the bullet away so it disapears (not necessary for the hitbox but necessary for the texture)
-							bullets[i].BulletHitbox.x = SCREEN_WIDTH;
-							bullets[i].BulletHitbox.y = SCREEN_HEIGHT;
+								//throwing the bullet away so it disapears (not necessary for the hitbox but necessary for the texture)
+								bullets[i].BulletHitbox.x = SCREEN_WIDTH;
+								bullets[i].BulletHitbox.y = SCREEN_HEIGHT;
 
+							}
 						}
 					}
 				}
@@ -447,7 +450,7 @@ void main() {
 				} else if(i == 1)
 				{
 					DrawTextureRec(enemy2tex,
-						Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy1tex.height }
+						Rectangle{ (enemyFramewidth * enemies[i][j].enemyframe),0,enemyFramewidth,(float)enemy2tex.height }
 					, enemies[i][j].position, WHITE);
 				}
 
