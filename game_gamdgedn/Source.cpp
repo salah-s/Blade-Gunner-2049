@@ -391,7 +391,7 @@ void main() {
 							currentScore++;
 							enemies[i][j].active = false;
 							//xp and level system
-							if (xp == 10) {
+							if (xp == xpcap) {
 								xp = 0;
 								PlaySound(lvlupsound);
 								lvl++;
@@ -432,6 +432,7 @@ void main() {
 		//drawing background
 		DrawTexture(bg2, 0, 0, WHITE);
 
+		//drawing player
 		DrawTextureRec(mcTex, PlayerAnimationRec, playerPos, WHITE);
 
 		// Drawing active enemies
