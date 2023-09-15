@@ -93,7 +93,7 @@ struct Bullet {
 
 };
 
-
+bool Paused = false; //global variable for pause
 
 void main() {
 
@@ -160,6 +160,9 @@ void main() {
 	int highScore = 0;
 
 	float flashingDuration = 2.0f;
+	float boostduration = 0.2f;
+	float boostcooldown = 5.0f;
+	int boostspeed = 10;
 
 	bool collided = false;
 	bool gameOver = false;
@@ -220,6 +223,12 @@ void main() {
 	Timer firerateTimer;
 	firerateTimer.Lifetime = 0.0f;
 	float firerate = 0.5;
+	Timer boostTimer;
+	boostTimer.Lifetime = 0.0f;
+	Timer boostcooldownTimer;
+	boostcooldownTimer.Lifetime = 0.0f;
+
+
 
 	//animation related variables
 	float mcFramewidth = (float)(mcTex.width / 5); //player animation
@@ -245,14 +254,29 @@ void main() {
 	}
 	fclose(scores);
 
+	// start cooldown
+	
+
+
+
 	// GAME LOOP
 	while (!WindowShouldClose()) {
+
+		// pause
+		if (Paused && IsKeyPressed(KEY_X))
+		{
+			firerate = firerate * 0.9f;
+			enemySpawnRate = enemySpawnRate * 1.1f;
+			xpcap *= 1.1;
+			Paused = false;
+		}
+
 		UpdateMusicStream(backgroundmusic);
 		// Toggling fullscreen mode
 		if (IsKeyPressed(KEY_F))
 			ToggleFullscreen();
 
-		if (!gameOver)
+		if (!gameOver && !Paused)
 		{
 			//update playerhitbox pos
 			PlayerHitbox.x = playerPos.x + 20;
@@ -286,6 +310,27 @@ void main() {
 
 			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown))
 				playerPos.y += playerSpeed;
+
+			
+			//speed boost
+			if (IsKeyPressed(KEY_C) && isTimerDone(&boostTimer) && isTimerDone(&boostcooldownTimer)) {
+
+				StartTimer(&boostTimer, boostduration);
+				StartTimer(&boostcooldownTimer, boostduration + boostcooldown);
+
+			}
+
+			if (isTimerDone(&boostTimer) ) {
+			
+			playerSpeed = 2.6;
+		}
+			else
+				playerSpeed = boostspeed;
+
+
+
+			UpdateTimer(&boostTimer);
+			UpdateTimer(&boostcooldownTimer);
 
 			//activate bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
@@ -395,9 +440,13 @@ void main() {
 								xp = 0;
 								PlaySound(lvlupsound);
 								lvl++;
-								firerate = firerate * 0.9f;
-								enemySpawnRate = enemySpawnRate * 1.1f;
-								xpcap *= 1.1;
+								Paused = true;
+								
+									/* firerate = firerate * 0.9f;
+									enemySpawnRate = enemySpawnRate * 1.1f;
+									xpcap *= 1.1;
+									Paused = false; */
+								
 							}
 						}
 					}
@@ -421,10 +470,11 @@ void main() {
 
 		fclose(scores);
 
-		// DRAWING
+		// DRAWING*************************************************
 		BeginDrawing();
 		BeginMode2D(playerCam); // Showing camera
 
+	
 		DrawRectangle(-100, -100, 20, 20, RED);
 
 		ClearBackground(WHITE);
@@ -472,17 +522,22 @@ void main() {
 				DrawTexture(bullet1tex, bullets[i].BulletHitbox.x, bullets[i].BulletHitbox.y, WHITE);
 		}
 
-		//draw health
-		if (playerHealth >= 1) {
-			DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 0,20 }, playerCam), WHITE);
-			if (playerHealth >= 2) {
-				DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 150,20 }, playerCam), WHITE);
-				if (playerHealth == 3)
-					DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 300,20 }, playerCam), WHITE);
+
+			//draw health
+			if (playerHealth >= 1) {
+				DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 0,20 }, playerCam), WHITE);
+				if (playerHealth >= 2) {
+					DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 150,20 }, playerCam), WHITE);
+					if (playerHealth == 3)
+						DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 300,20 }, playerCam), WHITE);
+				}
 			}
-		}
 		
-		
+		//draw timers 
+			DrawText(TextFormat("boostcooldown timers %f", boostcooldownTimer.Lifetime), playerPos.x + 10, playerPos.y, 10, WHITE);
+			DrawText(TextFormat("boost timer %f", boostTimer.Lifetime), playerPos.x + 10, playerPos.y+20, 10, WHITE);
+
+
 		//draw HUD
 		DrawText(TextFormat("xp %d/%d", xp, xpcap), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,190 }, playerCam).y, 20, GREEN);
 		DrawText(TextFormat("lvl %d ", lvl), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,150 }, playerCam).y, 20, GREEN);
@@ -495,6 +550,9 @@ void main() {
 		if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
 			DrawText(TextFormat("%s", invincibleString), playerPos.x + 10, playerPos.y, 10, WHITE);
 	
+		//display paused
+		if(Paused)
+		DrawText("paused", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("paused",60),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y, 60, WHITE);
 
 		EndDrawing();
 
