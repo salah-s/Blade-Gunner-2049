@@ -62,6 +62,7 @@ bool isTimerDone(Timer* timer) {
 }
 
 
+
 struct Enemy { 
 
 	Texture2D texture;
@@ -95,7 +96,7 @@ struct Bullet {
 };
 
 bool Paused = false; //global variable for pause
-bool CanMove = true;
+
 
 void main() {
 
@@ -507,7 +508,7 @@ void main() {
 						enemies[i][j].EnemyHitbox.y = enemies[i][j].position.y + 10;
 
 						// Check collision between enemy and player 
-						if (CheckCollisionRecs(PlayerHitbox, enemies[i][j].EnemyHitbox) && isTimerDone(&flashingTimer) && !isTimerDone(&dashTimer) && playerHealth > 0 )
+						if (CheckCollisionRecs(PlayerHitbox, enemies[i][j].EnemyHitbox) && isTimerDone(&flashingTimer)  && playerHealth > 0 )
 						{
 							collided = true;
 							playerHealth--;
@@ -555,7 +556,7 @@ void main() {
 
 		fclose(scores);
 
-		// DRAWING*************************************************
+		// DRAWING**************************************************************************************************************************************************************
 		BeginDrawing();
 		BeginMode2D(playerCam); // Showing camera
 
