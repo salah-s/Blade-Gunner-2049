@@ -61,6 +61,7 @@ bool isTimerDone(Timer* timer) {
 		return timer->Lifetime <= 0; //if timer's lifetime is less than or equal 0 ,return 1      ,otherwise return 0
 }
 
+
 struct Enemy { 
 
 	Texture2D texture;
@@ -94,6 +95,7 @@ struct Bullet {
 };
 
 bool Paused = false; //global variable for pause
+bool CanMove = true;
 
 void main() {
 
@@ -113,6 +115,10 @@ void main() {
 	Texture2D enemy2tex = LoadTexture("resources/enemy_1.png");
 	Texture2D bullet1tex = LoadTexture("resources/bullet3s.png");
 	Texture2D heart = LoadTexture("resources/HEART5.png");
+	Texture2D speedboosttex = LoadTexture("resources/speed_boost_icon.png");
+	Texture2D speedboostcdtex = LoadTexture("resources/speed_boost_cooldown.png");
+	Texture2D dashtex = LoadTexture("resources/dash_icon.png");
+	Texture2D dashcdtex = LoadTexture("resources/dash_icon_cooldown.png");
 	
 	//loading audio
 	SetMasterVolume(0.75f);
@@ -155,14 +161,20 @@ void main() {
 	// enemy timer (old timer system)
 	int enemyTimer = 0;
 	float enemySpawnRate = 0.45f;
+	int playerdir =1;
+	
 
 	int currentScore = 0;
 	int highScore = 0;
 
 	float flashingDuration = 2.0f;
-	float boostduration = 0.2f;
+	float boostduration = 3.0f;
 	float boostcooldown = 5.0f;
-	int boostspeed = 10;
+	int boostspeed = 5.2;
+
+	float dashduration= 0.1f;
+	int dashspeed = 15;
+	float dashcooldown= 4.0f;
 
 	bool collided = false;
 	bool gameOver = false;
@@ -227,7 +239,10 @@ void main() {
 	boostTimer.Lifetime = 0.0f;
 	Timer boostcooldownTimer;
 	boostcooldownTimer.Lifetime = 0.0f;
-
+	Timer dashTimer;
+	dashTimer.Lifetime = 0.0f;
+	Timer dashcdTimer;
+	dashcdTimer.Lifetime = 0.0f;
 
 
 	//animation related variables
@@ -259,7 +274,7 @@ void main() {
 
 
 
-	// GAME LOOP
+	// GAME LOOP*********************************************************************************************
 	while (!WindowShouldClose()) {
 
 		// pause
@@ -298,39 +313,109 @@ void main() {
 			if (IsKeyDown(KEY_D) && !CheckCollisionRecs(PlayerHitbox, borderright)) {
 				playerPos.x += playerSpeed;
 				PlayerAnimationRec.width = mcFramewidth;
+				playerdir = 1; //last dir is right 
 			}
 
 			if (IsKeyDown(KEY_A) && !CheckCollisionRecs(PlayerHitbox, borderleft)) {
 				playerPos.x -= playerSpeed;
 				PlayerAnimationRec.width = -(mcFramewidth);
+				playerdir = 2; //last dir is left
 			}
 
-			if (IsKeyDown(KEY_W) && !CheckCollisionRecs(PlayerHitbox, borderup))
+			if (IsKeyDown(KEY_W) && !CheckCollisionRecs(PlayerHitbox, borderup)) {
 				playerPos.y -= playerSpeed;
+				playerdir = 3;
+			}//last dir is up
 
-			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown))
+			if (IsKeyDown(KEY_S) && !CheckCollisionRecs(PlayerHitbox, borderdown)) {
 				playerPos.y += playerSpeed;
 
-			
+				playerdir = 4;
+			}//last dir is right;
+
+
+			// determining last direction
+			if (IsKeyDown(KEY_A) && IsKeyDown(KEY_W))
+				playerdir = 5;//last dir is left up
+			else if (IsKeyDown(KEY_W) && IsKeyDown(KEY_D))
+				playerdir = 6;// last dif is right up
+			else if (IsKeyDown(KEY_D) && IsKeyDown(KEY_S))
+				playerdir = 7;// last dir is right down
+
+			else if (IsKeyDown(KEY_S) && IsKeyDown(KEY_A))
+				playerdir = 8;// last dif is down left
+
 			//speed boost
-			if (IsKeyPressed(KEY_C) && isTimerDone(&boostTimer) && isTimerDone(&boostcooldownTimer)) {
+			if (IsKeyPressed(KEY_SPACE) && isTimerDone(&boostTimer) && isTimerDone(&boostcooldownTimer)) {
 
 				StartTimer(&boostTimer, boostduration);
 				StartTimer(&boostcooldownTimer, boostduration + boostcooldown);
-
 			}
+			if (isTimerDone(&boostTimer)) {
 
-			if (isTimerDone(&boostTimer) ) {
-			
-			playerSpeed = 2.6;
-		}
+				playerSpeed = 2.6;
+			}
 			else
 				playerSpeed = boostspeed;
 
 
-
 			UpdateTimer(&boostTimer);
 			UpdateTimer(&boostcooldownTimer);
+			
+
+			//dash
+			if (IsKeyPressed(KEY_C) && isTimerDone(&dashTimer) && isTimerDone(&dashcdTimer)) {
+
+				StartTimer(&dashTimer, dashduration);
+				StartTimer(&dashcdTimer, dashduration + dashcooldown);
+			}
+
+			if (!isTimerDone(&dashTimer)) {
+			
+			// excute dash ,based of player dir	
+					switch (playerdir) {
+					case 1:
+						//right
+						playerPos.x += dashspeed;
+						break;
+					case 2:
+						//left
+						playerPos.x -= dashspeed;
+						break;
+					case 3:
+						//up
+						playerPos.y -= dashspeed;
+						break;
+					case 4:
+						//down
+						playerPos.y += dashspeed;
+						break;
+
+					case 5:
+						//left up
+						playerPos.x -= dashspeed;
+						playerPos.y -= dashspeed;
+						break;
+					case 6:
+						//right up
+						playerPos.x += dashspeed;
+						playerPos.y -= dashspeed;
+						break;
+					case 7:
+						//right down
+						playerPos.x += dashspeed;
+						playerPos.y += dashspeed;
+						break;
+					case 8:
+						//left down
+						playerPos.x -= dashspeed;
+						playerPos.y += dashspeed;
+						break;
+					}
+			}
+			
+			UpdateTimer(&dashTimer);
+			UpdateTimer(&dashcdTimer);
 
 			//activate bullets
 			for (int i = 0; i < MAX_BULLETS; i++) {
@@ -422,7 +507,7 @@ void main() {
 						enemies[i][j].EnemyHitbox.y = enemies[i][j].position.y + 10;
 
 						// Check collision between enemy and player 
-						if (CheckCollisionRecs(PlayerHitbox, enemies[i][j].EnemyHitbox) && isTimerDone(&flashingTimer) && playerHealth > 0)
+						if (CheckCollisionRecs(PlayerHitbox, enemies[i][j].EnemyHitbox) && isTimerDone(&flashingTimer) && !isTimerDone(&dashTimer) && playerHealth > 0 )
 						{
 							collided = true;
 							playerHealth--;
@@ -532,11 +617,23 @@ void main() {
 						DrawTextureV(heart, GetScreenToWorld2D(Vector2{ 300,20 }, playerCam), WHITE);
 				}
 			}
+
+			// draw boost icon
+			if (isTimerDone(&boostcooldownTimer))
+				DrawTextureV(speedboosttex, GetScreenToWorld2D(Vector2{ 1125,575 }, playerCam), WHITE);
+			else
+				DrawTextureV(speedboostcdtex, GetScreenToWorld2D(Vector2{ 1125,575 }, playerCam), WHITE);
+			// draw dash icon
+			if (isTimerDone(&dashcdTimer))
+				DrawTextureV(dashtex, GetScreenToWorld2D(Vector2{ 950,575 }, playerCam), WHITE);
+			else
+				DrawTextureV(dashcdtex, GetScreenToWorld2D(Vector2{ 950,575 }, playerCam), WHITE);
+
 		
 		//draw timers 
-			DrawText(TextFormat("boostcooldown timers %f", boostcooldownTimer.Lifetime), playerPos.x + 10, playerPos.y, 10, WHITE);
-			DrawText(TextFormat("boost timer %f", boostTimer.Lifetime), playerPos.x + 10, playerPos.y+20, 10, WHITE);
-
+			// DrawText(TextFormat("boostcooldown timer %f", boostcooldownTimer.Lifetime), playerPos.x + 10, playerPos.y, 10, WHITE);
+			// DrawText(TextFormat("boost timer %f", boostTimer.Lifetime), playerPos.x + 10, playerPos.y+20, 10, WHITE);
+			// DrawText(TextFormat("flashing timer %f", flashingTimer.Lifetime), playerPos.x + 10, playerPos.y + 30, 10, WHITE);
 
 		//draw HUD
 		DrawText(TextFormat("xp %d/%d", xp, xpcap), GetScreenToWorld2D(Vector2{ 10,40 }, playerCam).x, GetScreenToWorld2D(Vector2{ 10,190 }, playerCam).y, 20, GREEN);
@@ -550,9 +647,11 @@ void main() {
 		if (!(flashingTimer.Lifetime <= 0.0) && playerHealth != 0)
 			DrawText(TextFormat("%s", invincibleString), playerPos.x + 10, playerPos.y, 10, WHITE);
 	
+		DrawText(TextFormat("player dir %d", playerdir), playerPos.x + 10, playerPos.y, 10, WHITE);
+		
 		//display paused
 		if(Paused)
-		DrawText("paused", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("paused",60),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y, 60, WHITE);
+		DrawText("paused \n press x to continue", GetScreenToWorld2D(Vector2{ (SCREEN_WIDTH / 2) - (float)MeasureText("paused",100),0 }, playerCam).x, GetScreenToWorld2D(Vector2{ SCREEN_WIDTH / 2,(SCREEN_HEIGHT / 2) + -200 }, playerCam).y, 35, WHITE);
 
 		EndDrawing();
 
